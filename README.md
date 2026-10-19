@@ -65,10 +65,21 @@ database values come from Neon: in a fresh clone, run `neon link` (project
   falls back to Vercel's own URL.
 - Images are stored in the Vercel Blob store **stepin-media**. Locally the
   token comes from `.env.local` (`vercel env pull`).
-- Local and production share one Neon database. Payload pushes schema
-  changes in dev only, so after changing a collection run `npm run dev` once
-  before deploying. (ponytail: switch to Payload migrations if dev and
-  production ever get separate databases.)
+- **Databases.** Production uses the Neon branch **main**. Local development
+  and Vercel previews use the branch **dev** (a copy of main made on
+  2026-10-19), so local work never touches live data. `.env` points at dev;
+  `.neon` names it.
+- **Schema changes go through migrations.** Locally, Payload pushes schema
+  changes to dev automatically. Before a PR that changes a collection:
+  1. `npm run payload migrate:create <name>` and commit the files it writes
+     in `src/migrations/`.
+  2. Test it on a throwaway branch of main:
+     `neon branches create --name migrate-check --parent main`, run
+     `npm run payload migrate` with `DATABASE_URL` set to that branch's
+     direct connection string, check, then delete the branch.
+  3. Merging deploys production, and the production build
+     (`npm run vercel-build`) runs `payload migrate` over
+     `DATABASE_URL_UNPOOLED` before building.
 - Preview deployments are behind Vercel login, so Stripe cannot reach their
   webhook; orders bought on a preview stay `pending`. Test payments on
   production or locally with `stripe listen`.
