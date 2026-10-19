@@ -16,6 +16,7 @@ export default async function SuccessPage(props: PageProps<'/success'>) {
         where: { stripeSessionId: { equals: session_id } },
         limit: 1,
         depth: 1,
+        populate: { events: { name: true } },
       })
     : { docs: [] }
 

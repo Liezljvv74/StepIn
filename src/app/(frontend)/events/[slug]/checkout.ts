@@ -7,10 +7,10 @@ import { getPayload } from 'payload'
 import { CURRENCY } from '@/lib/format'
 import { stripe } from '@/lib/stripe'
 
-// Anyone may buy, so there is no login check. Only the event slug, ticket type
+// Anyone may buy, so there is no login check. Only the event id, ticket type
 // id and quantity come from the browser; the price is read from Payload here.
 export async function checkout(formData: FormData) {
-  const slug = String(formData.get('slug'))
+  const eventId = Number(formData.get('eventId'))
   const ticketTypeId = String(formData.get('ticketType'))
   const quantity = Number(formData.get('quantity'))
   if (!Number.isInteger(quantity) || quantity < 1 || quantity > 10) {
@@ -18,13 +18,11 @@ export async function checkout(formData: FormData) {
   }
 
   const payload = await getPayload({ config })
-  const {
-    docs: [event],
-  } = await payload.find({
+  const event = await payload.findByID({
     collection: 'events',
-    where: { slug: { equals: slug } },
+    id: eventId,
     overrideAccess: false, // published events only
-    limit: 1,
+    disableErrors: true,
     depth: 0,
   })
   const ticket = event?.ticketTypes.find((t) => t.id === ticketTypeId)
@@ -42,28 +40,28 @@ export async function checkout(formData: FormData) {
     },
   })
 
-  const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL
-  const session = await stripe.checkout.sessions.create(
-    {
-      mode: 'payment',
-      line_items: [
-        {
-          quantity,
-          price_data: {
-            currency: CURRENCY,
-            unit_amount: ticket.price,
-            product_data: { name: `${event.name}: ${ticket.name}` },
-          },
+  // Locally from .env; on Vercel the production domain, or the deployment's own URL on previews.
+  const baseUrl =
+    process.env.NEXT_PUBLIC_SERVER_URL ??
+    `https://${process.env.VERCEL_ENV === 'production' ? process.env.VERCEL_PROJECT_PRODUCTION_URL : process.env.VERCEL_URL}`
+  const session = await stripe.checkout.sessions.create({
+    mode: 'payment',
+    line_items: [
+      {
+        quantity,
+        price_data: {
+          currency: CURRENCY,
+          unit_amount: ticket.price,
+          product_data: { name: `${event.name}: ${ticket.name}` },
         },
-      ],
-      client_reference_id: String(order.id),
-      metadata: { orderId: String(order.id) },
-      integration_identifier: 'stepin-tickets-qhwmzrta',
-      success_url: `${baseUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${baseUrl}/events/${event.slug}`,
-    },
-    { idempotencyKey: `order-${order.id}` },
-  )
+      },
+    ],
+    client_reference_id: String(order.id),
+    metadata: { orderId: String(order.id) },
+    integration_identifier: 'stepin-tickets-qhwmzrta',
+    success_url: `${baseUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${baseUrl}/events/${event.slug}`,
+  })
 
   await payload.update({
     collection: 'orders',

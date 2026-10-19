@@ -30,7 +30,7 @@ export async function POST(req: Request) {
 async function markPaid(session: Stripe.Checkout.Session) {
   const payload = await getPayload({ config })
   const orderId = Number(session.client_reference_id)
-  const order = await payload.findByID({ collection: 'orders', id: orderId, disableErrors: true })
+  const order = await payload.findByID({ collection: 'orders', id: orderId, depth: 0, disableErrors: true })
   if (!order) {
     payload.logger.error(`Stripe session ${session.id}: no order ${session.client_reference_id}`)
     return
@@ -44,6 +44,7 @@ async function markPaid(session: Stripe.Checkout.Session) {
   await payload.update({
     collection: 'orders',
     where: { and: [{ id: { equals: orderId } }, { status: { equals: 'pending' } }] },
+    depth: 0,
     data: {
       status: 'paid',
       email: session.customer_details?.email,
