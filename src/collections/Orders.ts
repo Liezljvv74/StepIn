@@ -1,5 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
+import { createBookingFromOrder } from './hooks/createBookingFromOrder'
+
 // Orders are written by the server (checkout action and Stripe webhook) through
 // the Local API, which skips these rules. Over HTTP only admins get in.
 const loggedIn = ({ req }: { req: { user?: unknown } }) => Boolean(req.user)
@@ -15,6 +17,9 @@ export const Orders: CollectionConfig = {
     create: loggedIn,
     update: loggedIn,
     delete: loggedIn,
+  },
+  hooks: {
+    afterChange: [createBookingFromOrder],
   },
   fields: [
     // Not required: an order outlives its event (the clean-up deletes events but

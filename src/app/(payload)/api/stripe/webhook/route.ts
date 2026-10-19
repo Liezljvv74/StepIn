@@ -41,14 +41,21 @@ async function markPaid(session: Stripe.Checkout.Session) {
   }
 
   // Only a pending order moves to paid, so a repeated delivery changes nothing.
-  await payload.update({
+  // Marking it paid also creates its booking (Orders afterChange hook).
+  const { errors } = await payload.update({
     collection: 'orders',
     where: { and: [{ id: { equals: orderId } }, { status: { equals: 'pending' } }] },
     depth: 0,
     data: {
       status: 'paid',
       email: session.customer_details?.email,
+      phone: session.customer_details?.phone,
       stripeSessionId: session.id,
     },
   })
+  // A bulk update reports failures instead of throwing. Fail the request so
+  // Stripe delivers the event again rather than leaving a paid order pending.
+  if (errors.length > 0) {
+    throw new Error(`Order ${orderId} could not be marked paid: ${errors.map((e) => e.message).join('; ')}`)
+  }
 }
