@@ -15,6 +15,9 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
       <body>
         <header>
           <Link href="/">StepIn</Link>
+          <a href="/admin" className="admin-link">
+            Admin
+          </a>
         </header>
         <main>{children}</main>
       </body>
