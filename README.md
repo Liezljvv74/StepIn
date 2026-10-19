@@ -208,12 +208,48 @@ webhooks.
 StepIn is gaining the venue-management features of the owner's earlier diary
 app. Design: `docs/superpowers/specs/2026-10-19-venue-management-design.md`.
 
-- **Done:** bookings, table plans, seating, per-guest checkout with seat hold.
-- **Phase 2:** expenses per event and an event dashboard (seating, seats left,
-  bookings, money still to collect, expenses, income, profit).
-- **Phase 3:** Settings, defaults for new events, repeat events, regular guests.
-- **Phase 4:** CSV reports and the door list (Excel, printable page, CSV).
-- **Phase 5:** automatic close and clean-up of past events (orders are kept).
+| Phase | What | State |
+|---|---|---|
+| 0 | Separate dev and production databases, migrations (PR #3) | **Live** |
+| 1 | Bookings, table plans, seating, per-guest checkout with seat hold (PR #4) | **Live** |
+| 2 | Expenses per event and an event dashboard: seating, seats left, bookings, money still to collect, expenses, income, profit | Next |
+| 3 | Settings, defaults for new events, repeat events, regular guests | Planned |
+| 4 | CSV reports and the door list (Excel, printable page, CSV) | Planned |
+| 5 | Automatic close and clean-up of past events (orders are kept) | Planned |
+
+### Picking up (status on 2026-10-20)
+
+- **Where things stand:** `main` is live at <https://stepin-virid.vercel.app>
+  with Phases 0 and 1, and its migrations have run on production. No branches
+  or pull requests are open.
+- **Next step:** write the build plan for Phase 2 from the design document
+  (sections "Data", "Admin screens: Event dashboard"), save it under
+  `docs/superpowers/plans/`, then build it on a new branch with a pull request.
+  The Phase 0/1 plan in that folder shows the format.
+- **Before you start:**
+  1. `git pull` on `main`.
+  2. Start the two terminals from "Running it locally" (the dev server and
+     `stripe listen`).
+  3. Run `npm test` and expect 40 passing.
+- **Check on the live site:** make one purchase with guest names (card
+  `4242 4242 4242 4242`) and see it under **Bookings** in `/admin`. The two
+  online bookings named "Guest 1" came from orders made before names were
+  asked for; rename them or leave them.
+- **Working rules:**
+  - Stop the dev server before switching git branches. When the code changes
+    under it, Payload offers to delete tables from the dev database; never
+    answer `y`.
+  - Every change goes on a branch with a pull request.
+  - A change to a collection needs a migration (see "Deployment").
+- **Small follow-ups found in review** (not blocking):
+  - Keep a few minutes' margin between the end of the seat hold and Stripe's
+    expiry, so a last-second payment can't lose its seats.
+  - Refuse lowering seats per table below the guests already seated there.
+  - Use the event's own slug for Stripe's cancel link, not the one from the
+    form.
+  - Turn an out-of-range event id at checkout into a polite refusal.
+  - Make the tamper test expect the exact refusal.
+  - Stop the Phase 1 migration from calling live app code.
 
 ## Known issues
 
