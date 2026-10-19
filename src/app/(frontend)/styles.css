@@ -24,6 +24,9 @@ body {
   font: 16px/1.6 system-ui, sans-serif;
 }
 body > header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   padding: 1rem;
   border-bottom: 1px solid var(--border);
 }
@@ -32,6 +35,13 @@ body > header a {
   font-size: 1.25rem;
   color: var(--accent);
   text-decoration: none;
+}
+body > header .admin-link {
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 0.35rem 0.9rem;
+  border: 1px solid var(--accent);
+  border-radius: 0.5rem;
 }
 main {
   max-width: 60rem;
