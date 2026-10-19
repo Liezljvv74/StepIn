@@ -142,6 +142,30 @@ export interface Event {
     price: number;
     id?: string | null;
   }[];
+  /**
+   * How the room is laid out: one line per kind of table. Line one takes the low table numbers. No lines means the room is not laid out yet (no seat limit).
+   */
+  tablePlan?:
+    | {
+        shape: 'long' | 'round' | 'square';
+        count: number;
+        seats: number;
+        id?: string | null;
+      }[]
+    | null;
+  confirmTableChanges?: boolean | null;
+  /**
+   * Made from the table plan when the event is published.
+   */
+  tables?:
+    | {
+        number: number;
+        seats: number;
+        shape?: ('long' | 'round' | 'square') | null;
+        id?: string | null;
+      }[]
+    | null;
+  highestTableNumber?: number | null;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -312,6 +336,24 @@ export interface EventsSelect<T extends boolean = true> {
         price?: T;
         id?: T;
       };
+  tablePlan?:
+    | T
+    | {
+        shape?: T;
+        count?: T;
+        seats?: T;
+        id?: T;
+      };
+  confirmTableChanges?: T;
+  tables?:
+    | T
+    | {
+        number?: T;
+        seats?: T;
+        shape?: T;
+        id?: T;
+      };
+  highestTableNumber?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;

@@ -3,6 +3,8 @@ import { slugField } from 'payload'
 import { slugify } from 'payload/shared'
 
 import { TIME_ZONE } from '@/lib/format'
+import { DEFAULT_SEATS } from '@/lib/seating'
+import { reconcileEventTables } from './hooks/reconcileEventTables'
 
 // "Mandjiedans" on 31 Oct 2026 → "mandjiedans-2026-10-31", so repeat dates of the
 // same event get their own address. A slug that already ends in the date is kept.
@@ -25,6 +27,9 @@ export const Events: CollectionConfig = {
     create: ({ req }) => Boolean(req.user),
     update: ({ req }) => Boolean(req.user),
     delete: ({ req }) => Boolean(req.user),
+  },
+  hooks: {
+    beforeChange: [reconcileEventTables],
   },
   versions: {
     drafts: true,
@@ -65,6 +70,80 @@ export const Events: CollectionConfig = {
           ],
         },
       ],
+    },
+    {
+      name: 'tablePlan',
+      type: 'array',
+      labels: { singular: 'Table line', plural: 'Table plan' },
+      admin: {
+        description:
+          'How the room is laid out: one line per kind of table. Line one takes the low table numbers. No lines means the room is not laid out yet (no seat limit).',
+      },
+      fields: [
+        {
+          type: 'row',
+          fields: [
+            {
+              name: 'shape',
+              type: 'select',
+              required: true,
+              defaultValue: 'long',
+              options: ['long', 'round', 'square'],
+              admin: { width: '34%' },
+            },
+            {
+              name: 'count',
+              label: 'Number of tables',
+              type: 'number',
+              required: true,
+              min: 0,
+              max: 200,
+              admin: { width: '33%' },
+            },
+            {
+              name: 'seats',
+              label: 'Seats per table',
+              type: 'number',
+              required: true,
+              min: 1,
+              max: 100,
+              defaultValue: DEFAULT_SEATS,
+              admin: { width: '33%' },
+            },
+          ],
+        },
+      ],
+    },
+    {
+      name: 'confirmTableChanges',
+      label: 'Confirm: remove tables where guests are seated',
+      type: 'checkbox',
+      virtual: true,
+    },
+    {
+      name: 'tables',
+      type: 'array',
+      admin: {
+        readOnly: true,
+        initCollapsed: true,
+        description: 'Made from the table plan when the event is published.',
+      },
+      fields: [
+        {
+          type: 'row',
+          fields: [
+            { name: 'number', type: 'number', required: true },
+            { name: 'seats', type: 'number', required: true },
+            { name: 'shape', type: 'select', options: ['long', 'round', 'square'] },
+          ],
+        },
+      ],
+    },
+    {
+      name: 'highestTableNumber',
+      type: 'number',
+      defaultValue: 0,
+      admin: { hidden: true },
     },
   ],
 }
