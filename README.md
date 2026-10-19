@@ -1,126 +1,223 @@
 # StepIn
 
-A ticketed event page. The owner edits events and ticket prices in the Payload
-admin panel; customers buy tickets through Stripe Checkout (sandbox). See
-[`CLAUDE.md`](CLAUDE.md) for the full brief and the payment rules.
+StepIn sells tickets to events. The owner manages events, ticket prices,
+tables and bookings in an admin panel. Customers pick an event, name each
+guest, choose a ticket type for each one and pay through Stripe Checkout.
 
-## Running it
+- **Live site:** <https://stepin-virid.vercel.app>
+- **Admin panel:** <https://stepin-virid.vercel.app/admin>
+- **Payments:** Stripe **sandbox** only (test keys, test cards, no real money)
+
+Built with Payload CMS 3 inside Next.js 16, Postgres on Neon, Stripe Checkout,
+and hosted on Vercel.
+
+## What StepIn sells
+
+Tickets to the owner's events: dances, dinners, functions. Each event has a
+name, description, date and time, venue, an optional image, and one or more
+**ticket types** (for example *Standard* and *VIP*), each with its own price.
+A purchase is for 1–10 guests, and every guest is named and has their own
+ticket type.
+
+## Using StepIn (for the owner)
+
+Log in at `/admin`. On a new database the first visit shows **Create first
+user**; that account is the admin login from then on. Nothing in the admin
+needs a code change or a redeploy: the public site reads from the database on
+every visit, so a published change is live straight away.
+
+### Events
+
+1. **Events → Create New.**
+2. Fill in name, description, venue, date and time, and optionally an image.
+3. **Ticket types:** a name and a price **in cents** (`2500` = €25.00, minimum
+   `50`). Add as many as needed.
+4. **Table plan** (optional): one line per kind of table: shape (long, round,
+   square), number of tables, seats per table. Line one takes the low table
+   numbers. No lines means the room is not laid out yet and sales are not
+   limited.
+5. **Publish changes** puts the event on the site. **Save Draft** keeps it
+   hidden and does not change the live room.
+
+The web address (slug) is made from the name and the date, for example
+`mandjiedans-2026-10-31`, so the same event can run on many dates.
+
+Shrinking a table plan while guests sit at the tables it would remove is
+refused with a message naming the tables and guests. Tick **Confirm: remove
+tables where guests are seated** and publish again to go ahead; those guests
+become unseated.
+
+Deleting an event deletes its bookings too. Its orders are kept and still show
+the event's name and date.
+
+### Bookings
+
+**Bookings** lists every party coming to an event, both phone bookings and
+online purchases.
+
+- **Phone booking:** party name, telephone (required), and the guests. Each
+  guest has a status (*Paid*, *Pay at venue*, *Not paying*, *Cancelled*), a
+  table, a ticket type and a price in cents. A new party is seated
+  automatically at the table with the least room to spare that still fits
+  them, or across neighbouring tables if none fits.
+- **Online booking:** created automatically when Stripe confirms a payment,
+  with the guests' names, all *Paid*, and the buyer's phone from Stripe.
+- **Cancel one guest:** set their status to *Cancelled*; the seat is freed.
+- **Cancel the whole booking:** tick **Cancel the whole booking** and save.
+  Parties whose guests are all cancelled leave the list.
+- **Needs seating** is ticked on any party with a guest who has no table, so
+  they can be found and placed.
+
+### Orders
+
+**Orders** is the payment record for online purchases: guests, amount, buyer
+email and phone, Stripe session, and status (*pending* or *paid*). An order is
+marked paid only by Stripe's verified webhook, never by the success page.
+
+## Buying tickets (for customers)
+
+1. Open an event and choose how many guests (1–10).
+2. Type each guest's name and pick their ticket type.
+3. **Buy tickets** holds those seats for 31 minutes and opens Stripe Checkout,
+   which also asks for a phone number.
+4. After paying, the success page shows **You're in!** once Stripe has
+   confirmed the payment (refresh if it says it is still confirming).
+
+When every seat is taken or being paid for, the event page shows **Sold out**.
+An abandoned payment page expires after 31 minutes and its seats are free
+again.
+
+**Test cards (sandbox):** `4242 4242 4242 4242` succeeds; `4000 0000 0000 0002`
+is declined. Use any future expiry date and any CVC.
+
+## How payment works
+
+- Prices come from the database on the server. The browser only sends the
+  event, the guests' names and the ticket types they chose.
+- Money is stored in integer cents, as Stripe's `unit_amount` is.
+- An order becomes paid only from the `checkout.session.completed` webhook
+  (or `checkout.session.async_payment_succeeded`) with a verified signature
+  (`STRIPE_WEBHOOK_SECRET`).
+- The webhook is idempotent: a delivery repeated, even at the same moment,
+  never creates a second booking. If the booking cannot be created, the
+  webhook answers with an error so Stripe delivers it again.
+- Seats are counted and held under a per-event database lock, so two buyers
+  cannot take the same last seats.
+
+## Running it locally
+
+You need Node 20+, access to the Neon project **StepIn**, and the
+[Stripe CLI](https://docs.stripe.com/stripe-cli) logged in to the sandbox.
+
+1. `npm install`
+2. Create `.env` from `.env.example` (it is never committed):
+
+   | Variable | What it is |
+   |---|---|
+   | `DATABASE_URL` | Neon **dev** branch, pooled connection |
+   | `DATABASE_URL_UNPOOLED` | Neon **dev** branch, direct connection |
+   | `PAYLOAD_SECRET` | Any long random string |
+   | `STRIPE_SECRET_KEY` | Stripe sandbox secret key (`sk_test_…`) |
+   | `STRIPE_WEBHOOK_SECRET` | The `whsec_…` that `stripe listen` prints |
+   | `NEXT_PUBLIC_SERVER_URL` | `http://localhost:3000` |
+   | `BLOB_READ_WRITE_TOKEN` | Image storage; `vercel env pull` writes it to `.env.local` |
+
+   `neon connection-string dev` (pooled with `--pooled`) prints the database
+   values.
+3. Run the app and the webhook forwarding in two terminals:
+
+   ```bash
+   npm run dev
+   stripe listen --events checkout.session.completed,checkout.session.async_payment_succeeded --forward-to localhost:3000/api/stripe/webhook
+   ```
+
+4. Open <http://localhost:3000> for the site and <http://localhost:3000/admin>
+   for the admin panel.
+
+Local work uses the Neon **dev** branch, so it never touches live data.
+
+## Tests
 
 ```bash
-npm install
-npm run dev        # http://localhost:3000, admin at /admin
+npm run test:unit   # seating rules and Stripe line grouping (no database)
+npm run test:int    # Payload, bookings, checkout and webhook against the dev database
+npm test            # both
 ```
 
-`.env` is not committed. It needs the values listed in `.env.example`. The
-database values come from Neon: in a fresh clone, run `neon link` (project
-**StepIn**) to pull `DATABASE_URL` into `.env`.
+The integration tests create and delete their own events, bookings and orders
+on the dev branch. Test reports are in [`Reports/`](Reports):
+`StepIn-Development-Test-Report.xlsx` (every check made while building, with
+fixes) and `StepIn-Functionality-Test-Report.xlsx` (feature tests).
 
-## Status
+## Deployment
 
-### Done
-
-- **Project created** from Payload's blank template (Payload 3.91, Next.js,
-  npm). Collections so far: `Users` (admin login) and `Media` (uploads).
-- **Database:** Neon Postgres project **StepIn** (`fancy-hall-63560516`,
-  region `aws-eu-central-1`), linked through `.neon`. Payload has created its
-  tables there. `/admin` loads, and the API refuses requests without a login.
-- **Skills:** the Payload skills (`payload`, `cms-migration`) are installed in
-  `.claude/skills/`; the Stripe plugin is installed for Claude Code.
-- **CLAUDE.md** describes the project: a ticketed event page, the CMS half and
-  the payment half, and the rules for the payment.
-- **GitHub:** pushed to <https://github.com/Liezljvv74/StepIn>.
-- **Stripe keys:** sandbox `STRIPE_SECRET_KEY` and `NEXT_PUBLIC_SERVER_URL`
-  are in `.env`.
-- **Events collection** (`src/collections/Events.ts`): name, slug (name +
-  date, e.g. `mandjiedans-2026-10-31`, so repeat dates get their own page),
-  description, date and time, venue, image, and ticket types (name and price
-  in cents). Drafts are on: the public sees published events only; editing
-  needs a login.
-- **Orders collection** (`src/collections/Orders.ts`): event, ticket type,
-  quantity, amount in cents, email, Stripe session id, status
-  (`pending` / `paid`). Admins only over the API.
-- **Public pages:** upcoming events at `/`, one page per event at
-  `/events/<slug>` with ticket types and a Buy form.
-- **Checkout** (`src/app/(frontend)/events/[slug]/checkout.ts`): a Server
-  Action reads the price from Payload, creates a pending order and a Stripe
-  Checkout Session, and redirects to Stripe. Cancel returns to the event page;
-  `/success` shows what the webhook has recorded.
-- **Webhook** (`src/app/(payload)/api/stripe/webhook/route.ts`): verifies the
-  signature; on `checkout.session.completed` (or
-  `async_payment_succeeded`) with `payment_status: paid` it checks the amount
-  and moves the order from `pending` to `paid`. A repeated delivery changes
-  nothing.
-- **Tested end to end** with a temporary event: paid 2 × VIP with card 4242
-  on Stripe Checkout, sent the signed event twice. A bad signature returned
-  400, and the order became `paid` once with the right amount and email.
-
-### Venue management (from StepIn_Old)
-
-Design: `docs/superpowers/specs/2026-10-19-venue-management-design.md`.
-
-- **Phase 1, bookings and tables (done):**
-  - Events have a table plan (shape, number of tables, seats each). It becomes
-    numbered tables when the event is published.
-  - **Bookings** in the admin: party, telephone and guests, each guest with a
-    status, table, ticket type and price. Parties are seated automatically by
-    the old app's rule. Cancel one guest or the whole booking. "Needs seating"
-    marks parties with an unseated guest.
-  - Online checkout asks for each guest's name and ticket type, and holds the
-    seats for 31 minutes while the buyer pays. The event page says **Sold out**
-    when the room is full.
-  - When Stripe confirms payment, the order becomes a booking of paid guests
-    (`src/collections/hooks/createBookingFromOrder.ts`).
-  - Seat counting lives in one place: `src/lib/event-seats.ts`.
-- **Next:** Phase 2, expenses and the event dashboard.
-
-Tests: `npm run test:unit` (seating rules) and `npm run test:int`
-(against the dev database).
-
-### Deployment (Vercel)
-
-- Vercel project **stepin** (team `liezl`), connected to the GitHub repo:
-  pushes to `main` deploy to production, other branches get previews.
-- Functions run in `fra1` (`vercel.json`), next to the Neon database.
-- Environment values on Vercel: `DATABASE_URL`, `PAYLOAD_SECRET`,
-  `STRIPE_SECRET_KEY`, `BLOB_READ_WRITE_TOKEN`, and the production
-  `STRIPE_WEBHOOK_SECRET`. `NEXT_PUBLIC_SERVER_URL` is not set there; checkout
-  falls back to Vercel's own URL.
-- Images are stored in the Vercel Blob store **stepin-media**. Locally the
-  token comes from `.env.local` (`vercel env pull`).
-- **Databases.** Production uses the Neon branch **main**. Local development
-  and Vercel previews use the branch **dev** (a copy of main made on
-  2026-10-19), so local work never touches live data. `.env` points at dev;
-  `.neon` names it.
-- **Schema changes go through migrations.** Locally, Payload pushes schema
-  changes to dev automatically. Before a PR that changes a collection:
-  1. `npm run payload migrate:create <name>` and commit the files it writes
-     in `src/migrations/`.
-  2. Test it on a throwaway branch of main:
+- **Vercel project** `stepin`, connected to
+  <https://github.com/Liezljvv74/StepIn>. Pushes to `main` deploy production;
+  other branches get preview deployments.
+- Functions run in `fra1` (Frankfurt, `vercel.json`), next to the database.
+- **Environment variables on Vercel:** `DATABASE_URL`,
+  `DATABASE_URL_UNPOOLED`, `PAYLOAD_SECRET`, `STRIPE_SECRET_KEY`,
+  `STRIPE_WEBHOOK_SECRET` and `BLOB_READ_WRITE_TOKEN`. The database, Payload
+  and Stripe values are stored as sensitive (hidden) values. Checkout uses Vercel's own address when
+  `NEXT_PUBLIC_SERVER_URL` is not set.
+- **Stripe webhook** for production:
+  `https://stepin-virid.vercel.app/api/stripe/webhook`, events
+  `checkout.session.completed` and `checkout.session.async_payment_succeeded`.
+- **Images** are stored in the Vercel Blob store `stepin-media`.
+- **Databases:** production uses the Neon branch **main**; local development
+  and previews use **dev**.
+- **Schema changes** reach production as Payload migrations in
+  `src/migrations/`:
+  1. After changing a collection, run `npm run payload migrate:create <name>`
+     and commit the files it writes.
+  2. Test it on a throwaway copy of production:
      `neon branches create --name migrate-check --parent main`, run
-     `npm run payload migrate` with `DATABASE_URL` set to that branch's
-     direct connection string, check, then delete the branch.
-  3. Merging deploys production, and the production build
-     (`npm run vercel-build`) runs `payload migrate` over
-     `DATABASE_URL_UNPOOLED` before building.
-- Preview deployments are behind Vercel login, so Stripe cannot reach their
-  webhook; orders bought on a preview stay `pending`. Test payments on
-  production or locally with `stripe listen`.
+     `npm run payload migrate` with `DATABASE_URL` set to that branch's direct
+     connection string, check the result, then delete the branch.
+  3. Merging to `main` deploys production; the production build
+     (`npm run vercel-build`) runs `payload migrate` before building.
+- Previews are behind Vercel login, so Stripe cannot reach their webhook and
+  purchases there stay pending. Test payments on production or locally.
 
-### Running purchases locally
+## Project structure
 
-Keep two terminals open:
+| Path | What it holds |
+|---|---|
+| `src/collections/` | `Events`, `Bookings`, `Orders`, `Media`, `Users` |
+| `src/collections/hooks/` | Table plans, booking seating and summaries, paid order → booking |
+| `src/lib/seating.ts` | Seating rules (pure functions) |
+| `src/lib/event-seats.ts` | The one place seats are counted, plus the per-event lock |
+| `src/lib/reserve-seats.ts` | Checks a purchase and holds its seats |
+| `src/app/(frontend)/` | Public site: event list, event page and buy form, success page |
+| `src/app/(payload)/api/stripe/webhook/route.ts` | Stripe webhook |
+| `src/migrations/` | Database migrations |
+| `tests/unit`, `tests/int` | Automated tests |
+| `docs/superpowers/` | Design and build plan for the venue-management features |
+| `Reports/` | Test reports |
+| `CLAUDE.md` | Project brief and the payment rules for AI agents |
 
-```bash
-npm run dev
-stripe listen --events checkout.session.completed,checkout.session.async_payment_succeeded --forward-to localhost:3000/api/stripe/webhook
-```
+## Built with agent skills
 
-The `whsec_…` that `stripe listen` prints is `STRIPE_WEBHOOK_SECRET` in
-`.env`; it stays the same between runs.
+The Payload skills (`payload`, `cms-migration`, in `.claude/skills/`) and the
+Stripe plugin for Claude Code were installed before any app code was written.
+`CLAUDE.md` tells agents to use them for collections, hooks, Checkout and
+webhooks.
 
-### Template leftovers to tidy
+## What comes next
 
-- `docker-compose.yml` is set up for MongoDB; this project uses Neon
-  Postgres. Delete it or switch it to Postgres if Docker is ever wanted.
-- `package.json` test scripts call `pnpm`; this project uses npm.
-- `npm run lint` fails with an ESLint config error from the template.
+StepIn is gaining the venue-management features of the owner's earlier diary
+app. Design: `docs/superpowers/specs/2026-10-19-venue-management-design.md`.
+
+- **Done:** bookings, table plans, seating, per-guest checkout with seat hold.
+- **Phase 2:** expenses per event and an event dashboard (seating, seats left,
+  bookings, money still to collect, expenses, income, profit).
+- **Phase 3:** Settings, defaults for new events, repeat events, regular guests.
+- **Phase 4:** CSV reports and the door list (Excel, printable page, CSV).
+- **Phase 5:** automatic close and clean-up of past events (orders are kept).
+
+## Known issues
+
+- `npm run lint` fails with an ESLint configuration error inherited from the
+  Payload template; it does not affect the build or the tests.
+- Some template files are not used by StepIn: `docker-compose.yml` (set up for
+  MongoDB), `Dockerfile`, `test.env` and the Playwright tests in `tests/e2e`.
