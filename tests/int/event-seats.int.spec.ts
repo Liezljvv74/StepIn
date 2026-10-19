@@ -31,7 +31,6 @@ describe('seatsLeft', () => {
           event: event.id,
           partyName: `Party ${i}`,
           telephone: '0123',
-        source: 'phone',
           source: 'phone',
           guests: [{ name: `Guest ${i}`, status: 'pay_at_venue', price: 1000 }],
         },
