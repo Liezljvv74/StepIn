@@ -2,8 +2,10 @@ import config from '@payload-config'
 import { notFound } from 'next/navigation'
 import { getPayload } from 'payload'
 
+import { seatsLeft } from '@/lib/event-seats'
 import { formatDate, formatPrice } from '@/lib/format'
-import { checkout } from './checkout'
+import { MAX_GUESTS, SOLD_OUT_MESSAGE } from '@/lib/reserve-seats'
+import { BuyForm } from './BuyForm'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,6 +25,7 @@ export default async function EventPage(props: PageProps<'/events/[slug]'>) {
 
   const image = typeof event.image === 'object' ? event.image : null
   const isPast = new Date(event.date) < new Date()
+  const left = isPast ? 0 : await seatsLeft(payload, event.id)
 
   return (
     <article className="event">
@@ -37,30 +40,21 @@ export default async function EventPage(props: PageProps<'/events/[slug]'>) {
 
       {isPast ? (
         <p className="buy">This event has already taken place.</p>
+      ) : left === 0 ? (
+        <div className="buy">
+          <strong>Sold out</strong>
+          <p>{SOLD_OUT_MESSAGE}.</p>
+        </div>
       ) : (
-        <form action={checkout} className="buy">
-          <input type="hidden" name="eventId" value={event.id} />
-          <fieldset>
-            <legend>Ticket</legend>
-            {event.ticketTypes.map((ticket, i) => (
-              <label key={ticket.id}>
-                <input
-                  type="radio"
-                  name="ticketType"
-                  value={ticket.id ?? ''}
-                  defaultChecked={i === 0}
-                  required
-                />
-                {ticket.name} <span>{formatPrice(ticket.price)}</span>
-              </label>
-            ))}
-          </fieldset>
-          <label>
-            Quantity{' '}
-            <input type="number" name="quantity" min={1} max={10} defaultValue={1} required />
-          </label>
-          <button type="submit">Buy tickets</button>
-        </form>
+        <BuyForm
+          eventId={event.id}
+          slug={event.slug}
+          maxGuests={Math.min(MAX_GUESTS, left ?? MAX_GUESTS)}
+          ticketTypes={event.ticketTypes.map((t) => ({
+            id: t.id!,
+            label: `${t.name} ${formatPrice(t.price)}`,
+          }))}
+        />
       )}
     </article>
   )

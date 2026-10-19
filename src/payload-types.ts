@@ -68,6 +68,7 @@ export interface Config {
   blocks: {};
   collections: {
     events: Event;
+    bookings: Booking;
     orders: Order;
     media: Media;
     users: User;
@@ -79,6 +80,7 @@ export interface Config {
   collectionsJoins: {};
   collectionsSelect: {
     events: EventsSelect<false> | EventsSelect<true>;
+    bookings: BookingsSelect<false> | BookingsSelect<true>;
     orders: OrdersSelect<false> | OrdersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
@@ -142,6 +144,30 @@ export interface Event {
     price: number;
     id?: string | null;
   }[];
+  /**
+   * How the room is laid out: one line per kind of table. Line one takes the low table numbers. No lines means the room is not laid out yet (no seat limit).
+   */
+  tablePlan?:
+    | {
+        shape: 'long' | 'round' | 'square';
+        count: number;
+        seats: number;
+        id?: string | null;
+      }[]
+    | null;
+  confirmTableChanges?: boolean | null;
+  /**
+   * Made from the table plan when the event is published.
+   */
+  tables?:
+    | {
+        number: number;
+        seats: number;
+        shape?: ('long' | 'round' | 'square') | null;
+        id?: string | null;
+      }[]
+    | null;
+  highestTableNumber?: number | null;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -168,11 +194,39 @@ export interface Media {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "bookings".
+ */
+export interface Booking {
+  id: number;
+  event: number | Event;
+  partyName: string;
+  telephone?: string | null;
+  guests: {
+    name?: string | null;
+    status: 'paid' | 'pay_at_venue' | 'not_paying' | 'cancelled';
+    table?: number | null;
+    ticketType?: string | null;
+    price?: number | null;
+    id?: string | null;
+  }[];
+  source: 'phone' | 'online';
+  order?: (number | null) | Order;
+  cancelBooking?: boolean | null;
+  liveGuests?: number | null;
+  hasUnseated?: boolean | null;
+  fullyCancelled?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "orders".
  */
 export interface Order {
   id: number;
-  event: number | Event;
+  event?: (number | null) | Event;
+  eventName?: string | null;
+  eventDate?: string | null;
   ticketType: string;
   quantity: number;
   /**
@@ -180,6 +234,22 @@ export interface Order {
    */
   amount: number;
   email?: string | null;
+  phone?: string | null;
+  guests?:
+    | {
+        name: string;
+        ticketType?: string | null;
+        /**
+         * Cents
+         */
+        price?: number | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * A pending order holds its seats until then (the Stripe session expires at the same time).
+   */
+  holdUntil?: string | null;
   stripeSessionId?: string | null;
   status: 'pending' | 'paid';
   updatedAt: string;
@@ -238,6 +308,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'events';
         value: number | Event;
+      } | null)
+    | ({
+        relationTo: 'bookings';
+        value: number | Booking;
       } | null)
     | ({
         relationTo: 'orders';
@@ -312,9 +386,54 @@ export interface EventsSelect<T extends boolean = true> {
         price?: T;
         id?: T;
       };
+  tablePlan?:
+    | T
+    | {
+        shape?: T;
+        count?: T;
+        seats?: T;
+        id?: T;
+      };
+  confirmTableChanges?: T;
+  tables?:
+    | T
+    | {
+        number?: T;
+        seats?: T;
+        shape?: T;
+        id?: T;
+      };
+  highestTableNumber?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "bookings_select".
+ */
+export interface BookingsSelect<T extends boolean = true> {
+  event?: T;
+  partyName?: T;
+  telephone?: T;
+  guests?:
+    | T
+    | {
+        name?: T;
+        status?: T;
+        table?: T;
+        ticketType?: T;
+        price?: T;
+        id?: T;
+      };
+  source?: T;
+  order?: T;
+  cancelBooking?: T;
+  liveGuests?: T;
+  hasUnseated?: T;
+  fullyCancelled?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -322,10 +441,22 @@ export interface EventsSelect<T extends boolean = true> {
  */
 export interface OrdersSelect<T extends boolean = true> {
   event?: T;
+  eventName?: T;
+  eventDate?: T;
   ticketType?: T;
   quantity?: T;
   amount?: T;
   email?: T;
+  phone?: T;
+  guests?:
+    | T
+    | {
+        name?: T;
+        ticketType?: T;
+        price?: T;
+        id?: T;
+      };
+  holdUntil?: T;
   stripeSessionId?: T;
   status?: T;
   updatedAt?: T;

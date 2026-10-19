@@ -5,63 +5,65 @@ import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 
 import { CURRENCY } from '@/lib/format'
+import { CheckoutError, MAX_GUESTS, reserveSeats } from '@/lib/reserve-seats'
 import { stripe } from '@/lib/stripe'
+import { stripeLines } from '@/lib/stripe-lines'
 
-// Anyone may buy, so there is no login check. Only the event id, ticket type
-// id and quantity come from the browser; the price is read from Payload here.
-export async function checkout(formData: FormData) {
-  const eventId = Number(formData.get('eventId'))
-  const ticketTypeId = String(formData.get('ticketType'))
-  const quantity = Number(formData.get('quantity'))
-  if (!Number.isInteger(quantity) || quantity < 1 || quantity > 10) {
-    throw new Error('Quantity must be between 1 and 10')
-  }
+export type CheckoutState = { error?: string }
+
+// Anyone may buy, so there is no login check. Only the event id, the guests'
+// names and their ticket type ids come from the browser; reserveSeats prices
+// every guest from Payload and holds the seats.
+export async function checkout(_state: CheckoutState, formData: FormData): Promise<CheckoutState> {
+  const count = Math.min(Number(formData.get('quantity')) || 0, MAX_GUESTS + 1)
+  const guests = Array.from({ length: count }, (_, i) => ({
+    name: String(formData.get(`guests.${i}.name`) ?? ''),
+    ticketTypeId: String(formData.get(`guests.${i}.ticketType`) ?? ''),
+  }))
 
   const payload = await getPayload({ config })
-  const event = await payload.findByID({
-    collection: 'events',
-    id: eventId,
-    overrideAccess: false, // published events only
-    disableErrors: true,
-    depth: 0,
-  })
-  const ticket = event?.ticketTypes.find((t) => t.id === ticketTypeId)
-  if (!event || !ticket) throw new Error('Ticket not found')
-  if (new Date(event.date) < new Date()) throw new Error('This event has already taken place')
-
-  const order = await payload.create({
-    collection: 'orders',
-    data: {
-      event: event.id,
-      ticketType: ticket.name,
-      quantity,
-      amount: ticket.price * quantity,
-      status: 'pending',
-    },
-  })
+  let order
+  try {
+    order = await reserveSeats(payload, { eventId: Number(formData.get('eventId')), guests })
+  } catch (error) {
+    if (error instanceof CheckoutError) return { error: error.message }
+    throw error
+  }
 
   // Locally from .env; on Vercel the production domain, or the deployment's own URL on previews.
   const baseUrl =
     process.env.NEXT_PUBLIC_SERVER_URL ??
     `https://${process.env.VERCEL_ENV === 'production' ? process.env.VERCEL_PROJECT_PRODUCTION_URL : process.env.VERCEL_URL}`
-  const session = await stripe.checkout.sessions.create({
-    mode: 'payment',
-    line_items: [
-      {
+  const slug = String(formData.get('slug') ?? '')
+
+  let session
+  try {
+    session = await stripe.checkout.sessions.create({
+      mode: 'payment',
+      line_items: stripeLines(
+        (order.guests ?? []).map((g) => ({ ticketType: g.ticketType!, price: g.price! })),
+      ).map(({ ticketType, quantity, price }) => ({
         quantity,
         price_data: {
           currency: CURRENCY,
-          unit_amount: ticket.price,
-          product_data: { name: `${event.name}: ${ticket.name}` },
+          unit_amount: price,
+          product_data: { name: `${order.eventName}: ${ticketType}` },
         },
-      },
-    ],
-    client_reference_id: String(order.id),
-    metadata: { orderId: String(order.id) },
-    integration_identifier: 'stepin-tickets-qhwmzrta',
-    success_url: `${baseUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${baseUrl}/events/${event.slug}`,
-  })
+      })),
+      phone_number_collection: { enabled: true },
+      // The seats are held exactly as long as the payment page is open.
+      expires_at: Math.floor(new Date(order.holdUntil!).getTime() / 1000),
+      client_reference_id: String(order.id),
+      metadata: { orderId: String(order.id) },
+      integration_identifier: 'stepin-tickets-qhwmzrta',
+      success_url: `${baseUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${baseUrl}/events/${slug}`,
+    })
+  } catch (error) {
+    // Give the seats straight back rather than holding them for nothing.
+    await payload.delete({ collection: 'orders', id: order.id })
+    throw error
+  }
 
   await payload.update({
     collection: 'orders',
