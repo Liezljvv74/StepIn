@@ -54,6 +54,28 @@ database values come from Neon: in a fresh clone, run `neon link` (project
   on Stripe Checkout, sent the signed event twice. A bad signature returned
   400, and the order became `paid` once with the right amount and email.
 
+### Venue management (from StepIn_Old)
+
+Design: `docs/superpowers/specs/2026-10-19-venue-management-design.md`.
+
+- **Phase 1, bookings and tables (done):**
+  - Events have a table plan (shape, number of tables, seats each). It becomes
+    numbered tables when the event is published.
+  - **Bookings** in the admin: party, telephone and guests, each guest with a
+    status, table, ticket type and price. Parties are seated automatically by
+    the old app's rule. Cancel one guest or the whole booking. "Needs seating"
+    marks parties with an unseated guest.
+  - Online checkout asks for each guest's name and ticket type, and holds the
+    seats for 31 minutes while the buyer pays. The event page says **Sold out**
+    when the room is full.
+  - When Stripe confirms payment, the order becomes a booking of paid guests
+    (`src/collections/hooks/createBookingFromOrder.ts`).
+  - Seat counting lives in one place: `src/lib/event-seats.ts`.
+- **Next:** Phase 2, expenses and the event dashboard.
+
+Tests: `npm run test:unit` (seating rules) and `npm run test:int`
+(against the dev database).
+
 ### Deployment (Vercel)
 
 - Vercel project **stepin** (team `liezl`), connected to the GitHub repo:
