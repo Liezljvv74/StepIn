@@ -7,7 +7,11 @@ export const formatPrice = (cents: number) =>
 
 export const formatDate = (iso: string) =>
   new Intl.DateTimeFormat('en', {
-    dateStyle: 'full',
-    timeStyle: 'short',
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
     timeZone: TIME_ZONE,
   }).format(new Date(iso))

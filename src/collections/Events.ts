@@ -32,7 +32,7 @@ export const Events: CollectionConfig = {
   fields: [
     { name: 'name', type: 'text', required: true },
     slugField({ useAsSlug: 'name', slugify: slugWithDate }),
-    { name: 'description', type: 'textarea', required: true },
+    { name: 'description', type: 'textarea', required: true, admin: { rows: 3 } },
     {
       name: 'date',
       type: 'date',
@@ -40,23 +40,29 @@ export const Events: CollectionConfig = {
       admin: { position: 'sidebar', date: { pickerAppearance: 'dayAndTime' } },
     },
     { name: 'venue', type: 'text', required: true, admin: { position: 'sidebar' } },
-    { name: 'image', type: 'upload', relationTo: 'media' },
+    { name: 'image', type: 'upload', relationTo: 'media', admin: { position: 'sidebar' } },
     {
       name: 'ticketTypes',
       type: 'array',
       required: true,
       minRows: 1,
       fields: [
-        { name: 'name', type: 'text', required: true },
         {
-          name: 'price',
-          type: 'number',
-          required: true,
-          // Stripe rejects card charges below about 50 cents.
-          min: 50,
-          admin: { description: 'In cents: 2500 means 25.00' },
-          validate: (value: number | null | undefined) =>
-            Number.isInteger(value) || 'Price must be a whole number of cents',
+          type: 'row',
+          fields: [
+            { name: 'name', type: 'text', required: true, admin: { width: '60%' } },
+            {
+              name: 'price',
+              type: 'number',
+              required: true,
+              // Stripe rejects card charges below about 50 cents.
+              min: 50,
+              label: 'Price in cents',
+              admin: { width: '40%', placeholder: '2500 means 25.00' },
+              validate: (value: number | null | undefined) =>
+                Number.isInteger(value) || 'Price must be a whole number of cents',
+            },
+          ],
         },
       ],
     },

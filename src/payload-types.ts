@@ -139,9 +139,6 @@ export interface Event {
   image?: (number | null) | Media;
   ticketTypes: {
     name: string;
-    /**
-     * In cents: 2500 means 25.00
-     */
     price: number;
     id?: string | null;
   }[];

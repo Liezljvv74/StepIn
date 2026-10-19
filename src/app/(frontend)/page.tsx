@@ -28,13 +28,13 @@ export default async function HomePage() {
             <li key={event.id}>
               <Link href={`/events/${event.slug}`} className="card">
                 {image?.url && <img src={image.url} alt={image.alt} />}
-                <div>
+                <div className="card-text">
                   <h2>{event.name}</h2>
                   <p>
                     {formatDate(event.date)} · {event.venue}
                   </p>
-                  <p>From {formatPrice(from)}</p>
                 </div>
+                <span className="price">From {formatPrice(from)}</span>
               </Link>
             </li>
           )

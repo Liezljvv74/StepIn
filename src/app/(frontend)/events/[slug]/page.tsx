@@ -26,15 +26,17 @@ export default async function EventPage(props: PageProps<'/events/[slug]'>) {
 
   return (
     <article className="event">
-      {image?.url && <img src={image.url} alt={image.alt} />}
-      <h1>{event.name}</h1>
-      <p className="meta">
-        {formatDate(event.date)} · {event.venue}
-      </p>
+      <header>
+        {image?.url && <img src={image.url} alt={image.alt} />}
+        <h1>{event.name}</h1>
+        <p className="meta">
+          {formatDate(event.date)} · {event.venue}
+        </p>
+      </header>
       <p className="description">{event.description}</p>
 
       {isPast ? (
-        <p>This event has already taken place.</p>
+        <p className="buy">This event has already taken place.</p>
       ) : (
         <form action={checkout} className="buy">
           <input type="hidden" name="slug" value={event.slug} />
