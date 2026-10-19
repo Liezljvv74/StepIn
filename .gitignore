@@ -52,3 +52,7 @@ node_modules/
 
 # Playwright MCP browser logs
 /.playwright-mcp
+
+.vercel
+.env*
+!.env.example

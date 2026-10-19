@@ -77,16 +77,6 @@ img { max-width: 100%; border-radius: 0.5rem; display: block; }
 .meta { color: var(--muted); margin: 0 0 0.75rem; }
 .event h1 { margin-top: 0; }
 .description { white-space: pre-line; margin: 0; }
-@media (max-width: 48rem) {
-  .event {
-    grid-template-columns: 1fr;
-    grid-template-areas: 'header' 'buy' 'description';
-    row-gap: 1rem;
-  }
-  .buy { position: static; }
-  .event img { max-height: 30vh; }
-}
-
 .buy {
   position: sticky;
   top: 1rem;
@@ -110,4 +100,14 @@ img { max-width: 100%; border-radius: 0.5rem; display: block; }
   background: var(--accent);
   color: #fff;
   cursor: pointer;
+}
+
+@media (max-width: 48rem) {
+  .event {
+    grid-template-columns: 1fr;
+    grid-template-areas: 'header' 'buy' 'description';
+    row-gap: 1rem;
+  }
+  .buy { position: static; }
+  .event img { max-height: 30vh; }
 }

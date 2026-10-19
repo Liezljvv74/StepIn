@@ -54,24 +54,36 @@ database values come from Neon: in a fresh clone, run `neon link` (project
   on Stripe Checkout, sent the signed event twice. A bad signature returned
   400, and the order became `paid` once with the right amount and email.
 
-### Next
+### Deployment (Vercel)
 
-1. **Admin user.** Open `/admin` and create the first admin user.
-2. **Local webhooks.** Install the Stripe CLI (`npm i -g @stripe/cli`), run
-   `stripe login`, then
-   `stripe listen --forward-to localhost:3000/api/stripe/webhook` and put the
-   `whsec_…` it prints into `.env` as `STRIPE_WEBHOOK_SECRET`. Keep it
-   running while testing purchases.
-3. **Seed content.** Three or four events in the admin panel. Prices are in
-   cents (2500 = EUR 25.00). Currency and display time zone are set in
-   `src/lib/format.ts`.
-4. **Deploy** to Vercel with the same environment values, and register the
-   deployed webhook URL in the Stripe Dashboard (events
-   `checkout.session.completed` and `checkout.session.async_payment_succeeded`).
-   Before that: create Payload migrations (`npm run payload migrate:create`),
-   because dev pushes the schema automatically but production does not; and
-   add a storage adapter for `Media` (e.g. Vercel Blob), because Vercel's disk
-   is not kept between requests.
+- Vercel project **stepin** (team `liezl`), connected to the GitHub repo:
+  pushes to `main` deploy to production, other branches get previews.
+- Functions run in `fra1` (`vercel.json`), next to the Neon database.
+- Environment values on Vercel: `DATABASE_URL`, `PAYLOAD_SECRET`,
+  `STRIPE_SECRET_KEY`, `BLOB_READ_WRITE_TOKEN`, and the production
+  `STRIPE_WEBHOOK_SECRET`. `NEXT_PUBLIC_SERVER_URL` is not set there; checkout
+  falls back to Vercel's own URL.
+- Images are stored in the Vercel Blob store **stepin-media**. Locally the
+  token comes from `.env.local` (`vercel env pull`).
+- Local and production share one Neon database. Payload pushes schema
+  changes in dev only, so after changing a collection run `npm run dev` once
+  before deploying. (ponytail: switch to Payload migrations if dev and
+  production ever get separate databases.)
+- Preview deployments are behind Vercel login, so Stripe cannot reach their
+  webhook; orders bought on a preview stay `pending`. Test payments on
+  production or locally with `stripe listen`.
+
+### Running purchases locally
+
+Keep two terminals open:
+
+```bash
+npm run dev
+stripe listen --events checkout.session.completed,checkout.session.async_payment_succeeded --forward-to localhost:3000/api/stripe/webhook
+```
+
+The `whsec_…` that `stripe listen` prints is `STRIPE_WEBHOOK_SECRET` in
+`.env`; it stays the same between runs.
 
 ### Template leftovers to tidy
 

@@ -39,7 +39,7 @@ export default async function EventPage(props: PageProps<'/events/[slug]'>) {
         <p className="buy">This event has already taken place.</p>
       ) : (
         <form action={checkout} className="buy">
-          <input type="hidden" name="slug" value={event.slug} />
+          <input type="hidden" name="eventId" value={event.id} />
           <fieldset>
             <legend>Ticket</legend>
             {event.ticketTypes.map((ticket, i) => (

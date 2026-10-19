@@ -12,6 +12,8 @@ export default async function HomePage() {
     collection: 'events',
     where: { date: { greater_than: new Date().toISOString() } },
     sort: 'date',
+    pagination: false,
+    select: { name: true, slug: true, date: true, venue: true, image: true, ticketTypes: true },
     overrideAccess: false,
     depth: 1,
   })
