@@ -1,59 +1,45 @@
-import { headers as getHeaders } from 'next/headers.js'
-import Image from 'next/image'
+import config from '@payload-config'
+import Link from 'next/link'
 import { getPayload } from 'payload'
-import React from 'react'
-import { fileURLToPath } from 'url'
 
-import config from '@/payload.config'
-import './styles.css'
+import { formatDate, formatPrice } from '@/lib/format'
+
+export const dynamic = 'force-dynamic'
 
 export default async function HomePage() {
-  const headers = await getHeaders()
-  const payloadConfig = await config
-  const payload = await getPayload({ config: payloadConfig })
-  const { user } = await payload.auth({ headers })
-
-  const fileURL = `vscode://file/${fileURLToPath(import.meta.url)}`
+  const payload = await getPayload({ config })
+  const { docs: events } = await payload.find({
+    collection: 'events',
+    where: { date: { greater_than: new Date().toISOString() } },
+    sort: 'date',
+    overrideAccess: false,
+    depth: 1,
+  })
 
   return (
-    <div className="home">
-      <div className="content">
-        <picture>
-          <source srcSet="https://raw.githubusercontent.com/payloadcms/payload/3.x/packages/ui/src/assets/payload-favicon.svg" />
-          <Image
-            alt="Payload Logo"
-            height={65}
-            src="https://raw.githubusercontent.com/payloadcms/payload/3.x/packages/ui/src/assets/payload-favicon.svg"
-            width={65}
-          />
-        </picture>
-        {!user && <h1>Welcome to your new project.</h1>}
-        {user && <h1>Welcome back, {user.email}</h1>}
-        <div className="links">
-          <a
-            className="admin"
-            href={payloadConfig.routes.admin}
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            Go to admin panel
-          </a>
-          <a
-            className="docs"
-            href="https://payloadcms.com/docs"
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            Documentation
-          </a>
-        </div>
-      </div>
-      <div className="footer">
-        <p>Update this page by editing</p>
-        <a className="codeLink" href={fileURL}>
-          <code>app/(frontend)/page.tsx</code>
-        </a>
-      </div>
-    </div>
+    <>
+      <h1>Upcoming events</h1>
+      {events.length === 0 && <p>No events yet. Check back soon.</p>}
+      <ul className="events">
+        {events.map((event) => {
+          const image = typeof event.image === 'object' ? event.image : null
+          const from = Math.min(...event.ticketTypes.map((t) => t.price))
+          return (
+            <li key={event.id}>
+              <Link href={`/events/${event.slug}`} className="card">
+                {image?.url && <img src={image.url} alt={image.alt} />}
+                <div>
+                  <h2>{event.name}</h2>
+                  <p>
+                    {formatDate(event.date)} · {event.venue}
+                  </p>
+                  <p>From {formatPrice(from)}</p>
+                </div>
+              </Link>
+            </li>
+          )
+        })}
+      </ul>
+    </>
   )
 }

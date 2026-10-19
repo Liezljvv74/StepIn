@@ -1,9 +1,10 @@
+import Link from 'next/link'
 import React from 'react'
 import './styles.css'
 
 export const metadata = {
-  description: 'A blank template using Payload in a Next.js app.',
-  title: 'Payload Blank Template',
+  description: 'Tickets for upcoming events.',
+  title: 'StepIn',
 }
 
 export default async function RootLayout(props: { children: React.ReactNode }) {
@@ -12,6 +13,9 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body>
+        <header>
+          <Link href="/">StepIn</Link>
+        </header>
         <main>{children}</main>
       </body>
     </html>
