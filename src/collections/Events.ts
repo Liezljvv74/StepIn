@@ -4,7 +4,7 @@ import { slugify } from 'payload/shared'
 
 import { TIME_ZONE } from '@/lib/format'
 import { DEFAULT_SEATS } from '@/lib/seating'
-import { reconcileEventTables } from './hooks/reconcileEventTables'
+import { reconcileEventTables, unseatDroppedTables } from './hooks/reconcileEventTables'
 
 // "Mandjiedans" on 31 Oct 2026 → "mandjiedans-2026-10-31", so repeat dates of the
 // same event get their own address. A slug that already ends in the date is kept.
@@ -30,6 +30,7 @@ export const Events: CollectionConfig = {
   },
   hooks: {
     beforeChange: [reconcileEventTables],
+    afterChange: [unseatDroppedTables],
   },
   versions: {
     drafts: true,

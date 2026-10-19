@@ -29,7 +29,7 @@ export default async function SuccessPage(props: PageProps<'/success'>) {
     )
   }
 
-  const eventName = typeof order.event === 'object' ? order.event.name : ''
+  const eventName = order.eventName ?? (typeof order.event === 'object' && order.event ? order.event.name : '')
 
   return (
     <>
