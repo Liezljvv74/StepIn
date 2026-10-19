@@ -31,6 +31,12 @@ export const Events: CollectionConfig = {
   hooks: {
     beforeChange: [reconcileEventTables],
     afterChange: [unseatDroppedTables],
+    // An event's bookings go with it; its orders stay, keeping the event's name.
+    beforeDelete: [
+      async ({ id, req }) => {
+        await req.payload.delete({ collection: 'bookings', where: { event: { equals: id } }, req })
+      },
+    ],
   },
   versions: {
     drafts: true,
@@ -65,8 +71,10 @@ export const Events: CollectionConfig = {
               min: 50,
               label: 'Price in cents',
               admin: { width: '40%', placeholder: '2500 means 25.00' },
+              // A custom validate replaces Payload's own min check, so it repeats it.
               validate: (value: number | null | undefined) =>
-                Number.isInteger(value) || 'Price must be a whole number of cents',
+                (Number.isInteger(value) && value! >= 50) ||
+                'Price must be a whole number of cents, at least 50',
             },
           ],
         },

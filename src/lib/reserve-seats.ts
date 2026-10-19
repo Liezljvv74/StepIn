@@ -1,8 +1,7 @@
-import { sql, type PostgresAdapter } from '@payloadcms/db-postgres'
 import { createLocalReq, type Payload } from 'payload'
 
 import type { Order } from '@/payload-types'
-import { seatsLeft } from './event-seats'
+import { lockEvent, seatsLeft } from './event-seats'
 
 // Stripe refuses a Checkout Session that expires less than 30 minutes after it
 // is created, and the session is created a moment after the hold starts.
@@ -37,9 +36,7 @@ export async function reserveSeats(payload: Payload, input: ReserveInput): Promi
   req.transactionID = transactionID
 
   try {
-    await (payload.db as unknown as PostgresAdapter).sessions[transactionID].db.execute(
-      sql`select pg_advisory_xact_lock(${input.eventId})`,
-    )
+    await lockEvent(payload, req, input.eventId)
 
     const event = await payload.findByID({
       collection: 'events',
@@ -50,7 +47,8 @@ export async function reserveSeats(payload: Payload, input: ReserveInput): Promi
       req,
     })
     if (!event) throw new CheckoutError('Unknown event')
-    if (new Date(event.date) < new Date()) throw new CheckoutError('This event has already taken place')
+    if (new Date(event.date) < new Date())
+      throw new CheckoutError('This event has already taken place')
 
     const priced = guests.map((g) => {
       const ticket = event.ticketTypes.find((t) => t.id === g.ticketTypeId)

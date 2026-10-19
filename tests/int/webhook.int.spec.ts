@@ -14,7 +14,7 @@ beforeAll(async () => {
 })
 afterAll(() => cleanUp(payload, created))
 
-async function pendingOrder() {
+async function pendingOrder(price = 1000) {
   const event = await payload.create({
     collection: 'events',
     data: eventData({ tablePlan: [{ shape: 'long', count: 1, seats: 10 }] }),
@@ -26,15 +26,15 @@ async function pendingOrder() {
       event: event.id,
       ticketType: 'Standard ×1',
       quantity: 1,
-      amount: 1000,
+      amount: price,
       status: 'pending',
-      guests: [{ name: 'Ann', ticketType: 'Standard', price: 1000 }],
+      guests: [{ name: 'Ann', ticketType: 'Standard', price }],
     },
   })
 }
 
 // A checkout.session.completed delivery for the order, signed like Stripe signs it.
-function delivery(orderId: number) {
+function delivery(orderId: number, amount = 1000) {
   const body = JSON.stringify({
     id: `evt_test_${orderId}`,
     object: 'event',
@@ -45,7 +45,7 @@ function delivery(orderId: number) {
         object: 'checkout.session',
         client_reference_id: String(orderId),
         payment_status: 'paid',
-        amount_total: 1000,
+        amount_total: amount,
         customer_details: { email: 'ann@example.com', phone: '+49 30 5555' },
       },
     },
@@ -92,6 +92,14 @@ describe('Stripe webhook', () => {
       },
     })
     await expect(POST(delivery(order.id))).rejects.toThrow(/could not be marked paid/)
+    const still = await payload.findByID({ collection: 'orders', id: order.id })
+    expect(still.status).toBe('pending')
+  })
+
+  it('keeps the order pending when the booking fails validation, so a retry can still book it', async () => {
+    // A negative price fails the booking's own validation: not a database error.
+    const order = await pendingOrder(-5)
+    await expect(POST(delivery(order.id, -5))).rejects.toThrow(/could not be marked paid/)
     const still = await payload.findByID({ collection: 'orders', id: order.id })
     expect(still.status).toBe('pending')
   })

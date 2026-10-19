@@ -7,6 +7,7 @@ import { getPayload } from 'payload'
 import { CURRENCY } from '@/lib/format'
 import { CheckoutError, MAX_GUESTS, reserveSeats } from '@/lib/reserve-seats'
 import { stripe } from '@/lib/stripe'
+import { stripeLines } from '@/lib/stripe-lines'
 
 export type CheckoutState = { error?: string }
 
@@ -29,14 +30,6 @@ export async function checkout(_state: CheckoutState, formData: FormData): Promi
     throw error
   }
 
-  // One Stripe line per ticket type, e.g. "VIP × 2".
-  const lines = new Map<string, { quantity: number; price: number }>()
-  for (const g of order.guests ?? []) {
-    const line = lines.get(g.ticketType!) ?? { quantity: 0, price: g.price! }
-    line.quantity += 1
-    lines.set(g.ticketType!, line)
-  }
-
   // Locally from .env; on Vercel the production domain, or the deployment's own URL on previews.
   const baseUrl =
     process.env.NEXT_PUBLIC_SERVER_URL ??
@@ -47,7 +40,9 @@ export async function checkout(_state: CheckoutState, formData: FormData): Promi
   try {
     session = await stripe.checkout.sessions.create({
       mode: 'payment',
-      line_items: [...lines].map(([ticketType, { quantity, price }]) => ({
+      line_items: stripeLines(
+        (order.guests ?? []).map((g) => ({ ticketType: g.ticketType!, price: g.price! })),
+      ).map(({ ticketType, quantity, price }) => ({
         quantity,
         price_data: {
           currency: CURRENCY,

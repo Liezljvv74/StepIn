@@ -1,6 +1,17 @@
+import { sql, type PostgresAdapter } from '@payloadcms/db-postgres'
 import type { Payload, PayloadRequest } from 'payload'
 
 import { seatsAvailable, isLive, type SeatedGuest, type Table } from './seating'
+
+// Serialises everything that counts or takes an event's seats (checkout holds,
+// automatic seating) until the caller's transaction ends.
+export async function lockEvent(payload: Payload, req: PayloadRequest, eventId: number) {
+  const transactionID = await req.transactionID
+  if (transactionID == null) throw new Error('lockEvent needs a transaction')
+  await (payload.db as unknown as PostgresAdapter).sessions[transactionID].db.execute(
+    sql`select pg_advisory_xact_lock(${eventId})`,
+  )
+}
 
 // The only place an event's seats are counted. Every find is unpaginated:
 // Payload returns 10 documents by default, which would undercount a full room.

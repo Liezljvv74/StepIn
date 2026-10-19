@@ -124,3 +124,60 @@ describe('bookings', () => {
     expect(after.hasUnseated).toBe(true)
   })
 })
+
+describe('prices', () => {
+  it('refuses a negative guest price and a ticket price under 50 cents', async () => {
+    const event = await roomOf(1, 10)
+    await expect(
+      book(event.id, { guests: [{ name: 'A', status: 'pay_at_venue', price: -5 }] }),
+    ).rejects.toThrow()
+    await expect(
+      payload.create({
+        collection: 'events',
+        data: eventData({ ticketTypes: [{ name: 'Cheap', price: 10 }] }),
+      }),
+    ).rejects.toThrow()
+  })
+})
+
+describe('seating at the same moment', () => {
+  it('never seats two parties saved together beyond the table size', async () => {
+    const event = await roomOf(1, 3)
+    const [a, b] = await Promise.all([
+      book(event.id, { guests: guests(2) }),
+      book(event.id, { guests: guests(2) }),
+    ])
+    const seated = [...a.guests, ...b.guests].filter((g) => g.table === 1)
+    expect(seated).toHaveLength(2)
+  })
+})
+
+describe('deleting an event', () => {
+  it('takes its bookings with it and keeps its orders', async () => {
+    const event = await roomOf(2, 10)
+    const booking = await book(event.id)
+    // More than Payload's default page of 10, so none may be left behind.
+    for (let i = 0; i < 11; i++) await book(event.id, { guests: guests(1) })
+    const order = await payload.create({
+      collection: 'orders',
+      data: {
+        event: event.id,
+        eventName: event.name,
+        ticketType: 'Standard',
+        quantity: 1,
+        amount: 1000,
+        status: 'paid',
+      },
+    })
+
+    await payload.delete({ collection: 'events', id: event.id })
+
+    const left = await payload.count({ collection: 'bookings', where: { event: { equals: event.id } } })
+    expect(left.totalDocs).toBe(0)
+    expect((await payload.count({ collection: 'bookings', where: { id: { equals: booking.id } } })).totalDocs).toBe(0)
+    const kept = await payload.findByID({ collection: 'orders', id: order.id, depth: 0 })
+    expect(kept.event).toBeNull()
+    expect(kept.eventName).toBe(event.name)
+    await payload.delete({ collection: 'orders', id: order.id })
+  })
+})

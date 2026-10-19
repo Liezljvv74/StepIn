@@ -64,8 +64,11 @@ export const Bookings: CollectionConfig = {
               type: 'number',
               min: 0,
               admin: { width: '20%' },
+              // A custom validate replaces Payload's own min check, so it repeats it.
               validate: (value: number | null | undefined) =>
-                value == null || Number.isInteger(value) || 'Price must be a whole number of cents',
+                value == null ||
+                (Number.isInteger(value) && value >= 0) ||
+                'Price must be a whole number of cents, 0 or more',
             },
           ],
         },
