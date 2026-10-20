@@ -217,6 +217,9 @@ export interface Booking {
   }[];
   source: 'phone' | 'online';
   order?: (number | null) | Order;
+  buyerEmail?: string | null;
+  amount?: number | null;
+  paymentStatus?: string | null;
   cancelBooking?: boolean | null;
   liveGuests?: number | null;
   hasUnseated?: boolean | null;
@@ -235,9 +238,6 @@ export interface Order {
   eventDate?: string | null;
   ticketType: string;
   quantity: number;
-  /**
-   * Total in cents
-   */
   amount: number;
   email?: string | null;
   phone?: string | null;
@@ -245,9 +245,6 @@ export interface Order {
     | {
         name: string;
         ticketType?: string | null;
-        /**
-         * Cents
-         */
         price?: number | null;
         id?: string | null;
       }[]
@@ -451,6 +448,9 @@ export interface BookingsSelect<T extends boolean = true> {
       };
   source?: T;
   order?: T;
+  buyerEmail?: T;
+  amount?: T;
+  paymentStatus?: T;
   cancelBooking?: T;
   liveGuests?: T;
   hasUnseated?: T;

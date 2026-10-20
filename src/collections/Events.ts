@@ -69,12 +69,12 @@ export const Events: CollectionConfig = {
               required: true,
               // Stripe rejects card charges below about 50 cents.
               min: 50,
-              label: 'Price in cents',
-              admin: { width: '40%', placeholder: '2500 means 25.00' },
+              label: 'Price (€)',
+              admin: { width: '40%', components: { Cell: '/components/Euros#EurosCell', Field: '/components/Euros#EurosField' } },
               // A custom validate replaces Payload's own min check, so it repeats it.
               validate: (value: number | null | undefined) =>
                 (Number.isInteger(value) && value! >= 50) ||
-                'Price must be a whole number of cents, at least 50',
+                'Price must be at least 0.50',
             },
           ],
         },

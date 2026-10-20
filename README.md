@@ -30,8 +30,8 @@ every visit, so a published change is live straight away.
 
 1. **Events → Create New.**
 2. Fill in name, description, venue, date and time, and optionally an image.
-3. **Ticket types:** a name and a price **in cents** (`2500` = €25.00, minimum
-   `50`). Add as many as needed.
+3. **Ticket types:** a name and a price in euros (`25.00`, or `25,00`;
+   minimum `0.50`). Add as many as needed.
 4. **Table plan** (optional): one line per kind of table: shape (long, round,
    square), number of tables, seats per table. Line one takes the low table
    numbers. No lines means the room is not laid out yet and sales are not
@@ -57,11 +57,13 @@ online purchases.
 
 - **Phone booking:** party name, telephone (required), and the guests. Each
   guest has a status (*Paid*, *Pay at venue*, *Not paying*, *Cancelled*), a
-  table, a ticket type and a price in cents. A new party is seated
+  table, a ticket type and a price in euros. A new party is seated
   automatically at the table with the least room to spare that still fits
   them, or across neighbouring tables if none fits.
 - **Online booking:** created automatically when Stripe confirms a payment,
   with the guests' names, all *Paid*, and the buyer's phone from Stripe.
+  It shows the buyer's email, amount (in euros) and paid status from its order (in the
+  list and the sidebar); the order itself stays under **Orders**.
 - **Cancel one guest:** set their status to *Cancelled*; the seat is freed.
 - **Cancel the whole booking:** tick **Cancel the whole booking** and save.
   Parties whose guests are all cancelled leave the list.
@@ -132,7 +134,8 @@ If data leaks, follow `SECURITY.md`.
 
 - Prices come from the database on the server. The browser only sends the
   event, the guests' names and the ticket types they chose.
-- Money is stored in integer cents, as Stripe's `unit_amount` is.
+- Money is stored in integer cents, as Stripe's `unit_amount` is. The admin
+  shows and accepts euros (`300.10`) and converts (`src/components/Euros.tsx`).
 - An order becomes paid only from the `checkout.session.completed` webhook
   (or `checkout.session.async_payment_succeeded`) with a verified signature
   (`STRIPE_WEBHOOK_SECRET`).

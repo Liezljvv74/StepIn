@@ -8,7 +8,7 @@ export const Bookings: CollectionConfig = {
   slug: 'bookings',
   admin: {
     useAsTitle: 'partyName',
-    defaultColumns: ['partyName', 'event', 'liveGuests', 'hasUnseated', 'source'],
+    defaultColumns: ['partyName', 'event', 'liveGuests', 'hasUnseated', 'buyerEmail', 'amount', 'paymentStatus'],
     listSearchableFields: ['partyName', 'telephone'],
     // Parties whose guests are all cancelled have no line, as in the old app.
     baseFilter: () => ({ fullyCancelled: { not_equals: true } }),
@@ -60,15 +60,15 @@ export const Bookings: CollectionConfig = {
             { name: 'ticketType', type: 'text', admin: { width: '15%' } },
             {
               name: 'price',
-              label: 'Price in cents',
+              label: 'Price (€)',
               type: 'number',
               min: 0,
-              admin: { width: '20%' },
+              admin: { width: '20%', components: { Cell: '/components/Euros#EurosCell', Field: '/components/Euros#EurosField' } },
               // A custom validate replaces Payload's own min check, so it repeats it.
               validate: (value: number | null | undefined) =>
                 value == null ||
                 (Number.isInteger(value) && value >= 0) ||
-                'Price must be a whole number of cents, 0 or more',
+                'Price must be 0.00 or more',
             },
           ],
         },
@@ -87,6 +87,27 @@ export const Bookings: CollectionConfig = {
       type: 'relationship',
       relationTo: 'orders',
       unique: true,
+      admin: { position: 'sidebar', readOnly: true },
+    },
+    // Read from the linked order (online bookings only); nothing is stored twice.
+    {
+      name: 'buyerEmail',
+      type: 'email',
+      virtual: 'order.email',
+      admin: { position: 'sidebar', readOnly: true },
+    },
+    {
+      name: 'amount',
+      label: 'Amount (€)',
+      type: 'number',
+      virtual: 'order.amount',
+      admin: { position: 'sidebar', readOnly: true, components: { Cell: '/components/Euros#EurosCell', Field: '/components/Euros#EurosField' } },
+    },
+    {
+      name: 'paymentStatus',
+      label: 'Paid status',
+      type: 'text',
+      virtual: 'order.status',
       admin: { position: 'sidebar', readOnly: true },
     },
     {
