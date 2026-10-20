@@ -11,6 +11,20 @@ guest, choose a ticket type for each one and pay through Stripe Checkout.
 Built with Payload CMS 3 inside Next.js 16, Postgres on Neon, Stripe Checkout,
 and hosted on Vercel.
 
+## Test reports
+
+In [`Reports/`](Reports):
+
+| Report | Covers | Result |
+|---|---|---|
+| `StepIn-Development-Test-Report-2026-10-20.xlsx` | Every check on 20 Oct 2026 (PRs #7–#19: email, GDPR, FAQ, privacy page, euro prices, efficiency, repeat events, docs, lint) and the 54 automated tests | 34 checks: 21 fixed, 11 passed first time, 1 known issue (a stray colon in the live privacy policy), 1 not yet tested in a browser. 54/54 automated tests pass |
+| `StepIn-Development-Test-Report.xlsx` | Every check while building Phases 0–1 on 19 Oct 2026, and the 40 automated tests then | 29 checks: 21 fixed, 6 passed first time, 1 not reproducible, 1 known issue (lint, fixed on 20 Oct). 40/40 tests pass |
+| `StepIn-Functionality-Test-Report.xlsx` | Customer and owner journeys in the browser, 19 Oct 2026 | 22/22 pass |
+
+Still to check in a browser: the footer **Admin** link, the "Thank you for
+Stepping In :-)" heading, typing the number of guests, and entering a price
+in the admin after the lint fix.
+
 ## What StepIn sells
 
 Tickets to the owner's events: dances, dinners, functions. Each event has a
@@ -217,12 +231,8 @@ npm test            # both (54 tests)
 ```
 
 The integration tests create and delete their own events, bookings and orders
-on the dev branch. Test reports are in [`Reports/`](Reports):
-`StepIn-Development-Test-Report.xlsx` (every check made while building, with
-fixes) and `StepIn-Functionality-Test-Report.xlsx` (feature tests), both from
-19 Oct 2026 and covering Phases 0–1, and
-`StepIn-Development-Test-Report-2026-10-20.xlsx` (every check on 20 Oct, PRs
-#7–#19, and the 54 automated tests).
+on the dev branch. The test reports are listed under "Test reports" at the
+top of this file.
 
 ## Deployment
 
