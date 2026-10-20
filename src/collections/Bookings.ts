@@ -102,7 +102,11 @@ export const Bookings: CollectionConfig = {
       label: 'Amount (€)',
       type: 'number',
       virtual: true,
-      admin: { position: 'sidebar', readOnly: true },
+      admin: {
+        position: 'sidebar',
+        readOnly: true,
+        components: { Cell: '/components/Euros#EurosCell', Field: '/components/Euros#EurosField' },
+      },
       hooks: {
         // ponytail: one order lookup per booking in the list; fine at this size.
         afterRead: [
