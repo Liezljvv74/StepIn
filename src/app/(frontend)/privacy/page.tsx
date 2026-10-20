@@ -12,8 +12,8 @@ export default function PrivacyPage() {
 
       <h2>Who is responsible</h2>
       <p>
-        StepIn is run by Liezl Fourie. For anything about your data, email{' '}
-        <a href={`mailto:${CONTACT}`}>{CONTACT}</a>.
+        StepIn is run by Liezl Fourie, Jesse Owens Ring, 14641 Wustermark, Germany. For anything
+        about your data, email <a href={`mailto:${CONTACT}`}>{CONTACT}</a>.
       </p>
 
       <h2>What we collect and why</h2>
