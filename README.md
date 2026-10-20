@@ -121,6 +121,8 @@ You need Node 20+, access to the Neon project **StepIn**, and the
    | `STRIPE_WEBHOOK_SECRET` | The `whsec_…` that `stripe listen` prints |
    | `NEXT_PUBLIC_SERVER_URL` | `http://localhost:3000` |
    | `BLOB_READ_WRITE_TOKEN` | Image storage; `vercel env pull` writes it to `.env.local` |
+   | `RESEND_API_KEY` | Resend key for admin emails (password reset). Empty: the email is printed in the dev server log |
+   | `EMAIL_FROM` | Sender address on a domain verified in Resend. Empty: `onboarding@resend.dev`, which only delivers to your own Resend account's email |
 
    `neon connection-string dev` (pooled with `--pooled`) prints the database
    values.
