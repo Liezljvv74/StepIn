@@ -74,6 +74,12 @@ online purchases.
 email and phone, Stripe session, and status (*pending* or *paid*). An order is
 marked paid only by Stripe's verified webhook, never by the success page.
 
+### FAQ
+
+**FAQs** holds the questions on the public `/faq` page (linked in the footer).
+Write a question and its answer, then **Publish**; drafts stay hidden. Drag
+rows in the list to change their order.
+
 ## Buying tickets (for customers)
 
 1. Open an event and choose how many guests (1–10).

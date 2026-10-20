@@ -12,6 +12,7 @@ import { Media } from './collections/Media'
 import { Events } from './collections/Events'
 import { Orders } from './collections/Orders'
 import { Bookings } from './collections/Bookings'
+import { Faqs } from './collections/Faqs'
 import { serverUrl } from './lib/server-url'
 
 const filename = fileURLToPath(import.meta.url)
@@ -26,7 +27,7 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Events, Bookings, Orders, Media, Users],
+  collections: [Events, Bookings, Orders, Faqs, Media, Users],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {
