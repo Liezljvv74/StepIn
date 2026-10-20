@@ -62,12 +62,50 @@ describe('seatsLeft', () => {
     await payload.create({ collection: 'orders', data: order(minutes(20)) })
     await payload.create({ collection: 'orders', data: order(minutes(-5)) })
 
-    expect(await seatsLeft(payload, event.id)).toBe(20 - 12 - 2)
+    expect(await seatsLeft(payload, event)).toBe(20 - 12 - 2)
   })
 
   it('has no limit when the room is not laid out', async () => {
     const event = await payload.create({ collection: 'events', data: eventData() })
     created.push(event.id)
-    expect(await seatsLeft(payload, event.id)).toBeNull()
+    expect(await seatsLeft(payload, event)).toBeNull()
+  })
+})
+
+describe('a phone booking and an online buyer still paying', () => {
+  it('leaves the held seats free', async () => {
+    const event = await payload.create({
+      collection: 'events',
+      data: eventData({ tablePlan: [{ shape: 'long', count: 1, seats: 4 }] }),
+    })
+    created.push(event.id)
+    await payload.create({
+      collection: 'orders',
+      data: {
+        event: event.id,
+        ticketType: 'Standard',
+        quantity: 3,
+        amount: 3000,
+        status: 'pending',
+        holdUntil: minutes(20),
+      },
+    })
+
+    const phone = await payload.create({
+      collection: 'bookings',
+      data: {
+        event: event.id,
+        partyName: 'Phone',
+        telephone: '0123',
+        source: 'phone',
+        guests: [
+          { name: 'A', status: 'pay_at_venue', price: 1000 },
+          { name: 'B', status: 'pay_at_venue', price: 1000 },
+        ],
+      },
+    })
+    // 4 seats, 3 held: a party of two cannot have them, so it waits to be placed.
+    expect(phone.guests.map((g) => g.table)).toEqual([null, null])
+    expect(phone.hasUnseated).toBe(true)
   })
 })

@@ -11,6 +11,7 @@ export const Faqs: CollectionConfig = {
   },
   versions: {
     drafts: true,
+    maxPerDoc: 10,
   },
   access: {
     // The public sees published questions only; logged-in staff see drafts too.

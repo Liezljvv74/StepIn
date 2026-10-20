@@ -119,6 +119,18 @@ function shareOut(chosen: FreeTable[], partySize: number) {
 }
 
 // Seats still for sale. null means the room is not laid out yet: no limit.
+// Seats the parties still paying online first (oldest hold first), so a booking
+// saved meanwhile leaves them room. Their real booking is seated by the same
+// rule once Stripe confirms the payment.
+export function withHeldParties(tables: Table[], guests: SeatedGuest[], heldParties: number[]): SeatedGuest[] {
+  let taken = guests
+  for (const size of heldParties) {
+    const seats = seatParty(tables, taken, size)
+    if (seats) taken = [...taken, ...seats.map((table) => ({ status: 'paid' as const, table }))]
+  }
+  return taken
+}
+
 export function seatsAvailable(tables: Table[], liveGuests: number, heldGuests: number): number | null {
   if (tables.length === 0) return null
   const room = tables.reduce((sum, t) => sum + t.seats, 0)

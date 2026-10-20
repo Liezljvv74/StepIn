@@ -59,7 +59,8 @@ online purchases.
   guest has a status (*Paid*, *Pay at venue*, *Not paying*, *Cancelled*), a
   table, a ticket type and a price in euros. A new party is seated
   automatically at the table with the least room to spare that still fits
-  them, or across neighbouring tables if none fits.
+  them, or across neighbouring tables if none fits. Seats held by online
+  buyers who are still paying are left free for them.
 - **Online booking:** created automatically when Stripe confirms a payment,
   with the guests' names, all *Paid*, and the buyer's phone from Stripe.
   It shows the buyer's email, amount (in euros) and paid status from its order (in the

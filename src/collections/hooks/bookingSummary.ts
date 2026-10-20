@@ -1,7 +1,7 @@
 import type { CollectionBeforeChangeHook } from 'payload'
 
 import { loadEventSeats, lockEvent } from '@/lib/event-seats'
-import { isLive, seatParty, type GuestStatus } from '@/lib/seating'
+import { isLive, seatParty, withHeldParties, type GuestStatus } from '@/lib/seating'
 
 type Guest = { id?: string | null; status: GuestStatus; table?: number | null }
 
@@ -25,13 +25,14 @@ export const bookingSummary: CollectionBeforeChangeHook = async ({ data, origina
     const eventId: number = typeof event === 'object' ? event.id : event
     // Two parties saved at once must not both take the same free seats.
     await lockEvent(req.payload, req, eventId)
-    const { tables, guests: others } = await loadEventSeats(
+    const { tables, guests: others, heldParties } = await loadEventSeats(
       req.payload,
       eventId,
       req,
       originalDoc?.id,
     )
-    const seats = seatParty(tables, others, newcomers.length)
+    // Seats held by online buyers who are still paying are not given away.
+    const seats = seatParty(tables, withHeldParties(tables, others, heldParties), newcomers.length)
     if (seats) newcomers.forEach((g, i) => (g.table = seats[i]))
   }
 

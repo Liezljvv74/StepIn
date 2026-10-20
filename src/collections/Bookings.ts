@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 
+import { EUROS } from './euros'
 import { bookingSummary } from './hooks/bookingSummary'
 
 // Phone bookings are entered here by the owner; online ones are created when
@@ -63,7 +64,7 @@ export const Bookings: CollectionConfig = {
               label: 'Price (€)',
               type: 'number',
               min: 0,
-              admin: { width: '20%', components: { Cell: '/components/Euros#EurosCell', Field: '/components/Euros#EurosField' } },
+              admin: { width: '20%', components: EUROS },
               // A custom validate replaces Payload's own min check, so it repeats it.
               validate: (value: number | null | undefined) =>
                 value == null ||
@@ -101,7 +102,7 @@ export const Bookings: CollectionConfig = {
       label: 'Amount (€)',
       type: 'number',
       virtual: 'order.amount',
-      admin: { position: 'sidebar', readOnly: true, components: { Cell: '/components/Euros#EurosCell', Field: '/components/Euros#EurosField' } },
+      admin: { position: 'sidebar', readOnly: true, components: EUROS },
     },
     {
       name: 'paymentStatus',
@@ -132,7 +133,6 @@ export const Bookings: CollectionConfig = {
     {
       name: 'fullyCancelled',
       type: 'checkbox',
-      index: true,
       admin: { position: 'sidebar', readOnly: true },
     },
   ],

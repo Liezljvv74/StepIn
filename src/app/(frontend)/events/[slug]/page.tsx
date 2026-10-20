@@ -25,7 +25,7 @@ export default async function EventPage(props: PageProps<'/events/[slug]'>) {
 
   const image = typeof event.image === 'object' ? event.image : null
   const isPast = new Date(event.date) < new Date()
-  const left = isPast ? 0 : await seatsLeft(payload, event.id)
+  const left = isPast ? 0 : await seatsLeft(payload, event)
 
   return (
     <article className="event">

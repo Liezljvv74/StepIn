@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 
+import { EUROS } from './euros'
 import { createBookingFromOrder } from './hooks/createBookingFromOrder'
 
 // Orders are written by the server (checkout action and Stripe webhook) through
@@ -23,20 +24,21 @@ export const Orders: CollectionConfig = {
     // Deleting an order (e.g. an erasure request) also deletes its booking, so
     // the guests' names and phone don't stay behind.
     afterDelete: [
-      async ({ id, req }) => {
+      async ({ doc, id, req }) => {
+        if (doc.status !== 'paid') return // only a paid order has a booking
         await req.payload.delete({ collection: 'bookings', where: { order: { equals: id } }, req })
       },
     ],
   },
   fields: [
-    // Not required: an order outlives its event (the clean-up deletes events but
-    // keeps orders), so it also keeps the event's name and date.
+    // Not required: an order outlives its event (deleting an event keeps its
+    // orders), so it also keeps the event's name and date.
     { name: 'event', type: 'relationship', relationTo: 'events' },
     { name: 'eventName', type: 'text' },
     { name: 'eventDate', type: 'date' },
     { name: 'ticketType', type: 'text', required: true },
     { name: 'quantity', type: 'number', required: true, min: 1 },
-    { name: 'amount', label: 'Amount (€)', type: 'number', required: true, admin: { components: { Cell: '/components/Euros#EurosCell', Field: '/components/Euros#EurosField' } } },
+    { name: 'amount', label: 'Amount (€)', type: 'number', required: true, admin: { components: EUROS } },
     { name: 'email', type: 'email' },
     { name: 'phone', type: 'text' },
     {
@@ -48,7 +50,7 @@ export const Orders: CollectionConfig = {
           fields: [
             { name: 'name', type: 'text', required: true },
             { name: 'ticketType', type: 'text' },
-            { name: 'price', label: 'Price (€)', type: 'number', admin: { components: { Cell: '/components/Euros#EurosCell', Field: '/components/Euros#EurosField' } } },
+            { name: 'price', label: 'Price (€)', type: 'number', admin: { components: EUROS } },
           ],
         },
       ],
