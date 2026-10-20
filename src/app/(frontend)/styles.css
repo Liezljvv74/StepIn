@@ -57,7 +57,10 @@ body > footer {
   font-size: 0.9rem;
 }
 .fine-print { font-size: 0.85rem; color: var(--muted); }
-.privacy { max-width: 40rem; }
+.privacy, .faq { max-width: 40rem; }
+.faq details { border-bottom: 1px solid var(--border); padding: 0.75rem 0; }
+.faq summary { cursor: pointer; font-weight: 600; }
+.faq details p { white-space: pre-line; margin: 0.5rem 0 0; }
 a { color: var(--accent); }
 img { max-width: 100%; border-radius: 0.5rem; display: block; }
 
