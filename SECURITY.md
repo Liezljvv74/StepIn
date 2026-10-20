@@ -12,6 +12,7 @@ Report a security problem or a data leak to Liezl Fourie,
    - the Neon database password (`DATABASE_URL`, `DATABASE_URL_UNPOOLED`)
    - `RESEND_API_KEY`
    - `BLOB_READ_WRITE_TOKEN`
+   - `CRON_SECRET`
 
    Change the admin passwords in `/admin`.
 2. **Find out what happened.** Check the Vercel logs and the Neon dashboard:
@@ -23,8 +24,9 @@ Report a security problem or a data leak to Liezl Fourie,
 5. **Tell the people affected** without delay if the risk to them is high
    (Art. 34), for example if names with phone numbers or emails leaked.
 
-Neon branches copied from production (such as `migrate-check`) hold real
-personal data too: delete them as soon as you are done with them.
+Neon branches copied from production (`dev`, and throwaway ones such as
+`migrate-check`) hold real personal data too: delete throwaway ones as soon as
+you are done with them, and treat `dev` like production data.
 
 ## Breach log
 

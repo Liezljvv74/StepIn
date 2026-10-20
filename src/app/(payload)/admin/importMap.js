@@ -1,4 +1,3 @@
-import { SlugField as SlugField_2b8867833a34864a02ddf429b0728a40 } from '@payloadcms/next/client'
 import { EurosCell as EurosCell_b05b1dd6da7c4eb80e3607fb3310397e } from '../../../components/Euros'
 import { EurosField as EurosField_b05b1dd6da7c4eb80e3607fb3310397e } from '../../../components/Euros'
 import { RscEntryLexicalCell as RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
@@ -29,7 +28,6 @@ import { VercelBlobClientUploadHandler as VercelBlobClientUploadHandler_16c82c5e
 
 /** @type import('payload').ImportMap */
 export const importMap = {
-  "@payloadcms/next/client#SlugField": SlugField_2b8867833a34864a02ddf429b0728a40,
   "/components/Euros#EurosCell": EurosCell_b05b1dd6da7c4eb80e3607fb3310397e,
   "/components/Euros#EurosField": EurosField_b05b1dd6da7c4eb80e3607fb3310397e,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalCell": RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e,

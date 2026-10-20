@@ -1,7 +1,7 @@
 {
   "name": "stepin",
   "version": "1.0.0",
-  "description": "A blank template to get started with Payload 3.0",
+  "description": "Ticketed events: Payload CMS admin and Stripe Checkout",
   "license": "MIT",
   "type": "module",
   "scripts": {
