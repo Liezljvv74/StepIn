@@ -56,6 +56,8 @@ describe('paid order becomes a booking', () => {
     expect(booking.partyName).toBe('Ann')
     expect(booking.telephone).toBe('+49 30 1234')
     expect(booking.event).toBe(event.id)
+    // Payment details are read from the order, not stored on the booking.
+    expect([booking.buyerEmail, booking.amount, booking.paymentStatus]).toEqual(['buyer@example.com', 2000, 'paid'])
     expect(booking.guests.map((g) => [g.name, g.status, g.price, g.table])).toEqual([
       ['Ann', 'paid', 1000, 1],
       ['Bob', 'paid', 1000, 1],
