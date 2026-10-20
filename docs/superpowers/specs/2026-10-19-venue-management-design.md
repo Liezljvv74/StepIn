@@ -3,6 +3,25 @@
 Date: 2026-10-19
 Status: approved for build ("Build as you listed")
 
+> **Status (2026-10-20):** Phases 0–1 were built as designed (PRs #3, #4). Since
+> then the build differs from the text below:
+> - **Repeat** is "Repeat: number of times" (1–52) plus Day/Week/Month on any
+>   save, with no custom dates, and copies carry no expenses or regulars
+>   (PR #17).
+> - **Clean-up** deletes bookings 29 days after the event and unpaid orders
+>   after 29 days, at most 200 of each per day, and never deletes events.
+>   Retention is fixed, not a Setting (PRs #8, #13).
+> - **Seat hold** is 31 minutes.
+> - **Phone bookings:** automatic seating leaves online holds free (PR #13).
+> - **Admin link** is in the footer (PR #15).
+> - **Not built:** Settings, Regulars, expenses, dashboard, new-event defaults,
+>   exports.
+> - **Added outside this spec:** FAQ, editable privacy policy, booking payment
+>   columns, euro price inputs, Resend emails.
+>
+> The text below is the original design; the code and README are the reference.
+
+
 ## Intent
 
 StepIn sells tickets online today: the owner manages events in Payload's admin

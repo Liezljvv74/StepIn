@@ -21,7 +21,7 @@ const slugWithDate = ({ data, valueToSlugify }: { data: { date?: string }; value
 const autoSlug: FieldHook = ({ value, data, originalDoc }) => {
   const generate = (doc?: { name?: string; date?: string }) =>
     slugWithDate({ data: { date: doc?.date }, valueToSlugify: doc?.name })
-  const slug = value ?? originalDoc?.slug
+  const slug = value === undefined ? originalDoc?.slug : value // null or '' means cleared
   const wasGenerated = !originalDoc || originalDoc.slug === generate(originalDoc)
   const typedNow = originalDoc && slug !== originalDoc.slug
   if (!slug || (wasGenerated && !typedNow)) {

@@ -1,5 +1,16 @@
 # Phase 0 + Phase 1: Neon dev branch, migrations, bookings & tables — Implementation Plan
 
+> **Status (2026-10-20): done.** Shipped in PRs #3 (Phase 0) and #4 (Phase 1).
+> The checkboxes were never ticked. The code now differs in details:
+> - `reserveSeats` is in `src/lib/reserve-seats.ts`, tested in
+>   `tests/int/reserve-seats.int.spec.ts`.
+> - The seat hold is 31 minutes.
+> - `seatsLeft` takes the event and sums `liveGuests`.
+> - Dropping tables with guests is refused with an `APIError`.
+> - `tables` is hidden in the admin.
+>
+> This is a historical record; the code is the reference.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Give local work its own Neon branch with migrations to production (Phase 0), then add bookings, table plans, per-guest online checkout with a seat hold, and paid online orders becoming seated bookings (Phase 1).

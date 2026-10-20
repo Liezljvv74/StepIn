@@ -23,7 +23,7 @@ export const eventData = (overrides: Partial<Event> = {}) => {
   }
 }
 
-// Deletes what a test created, bookings and orders first so the event can go.
+// Deletes what a test created: its bookings and orders (orders outlive an event), then the events.
 export async function cleanUp(payload: Payload, eventIds: number[]) {
   if (eventIds.length === 0) return
   const where = { event: { in: eventIds } }

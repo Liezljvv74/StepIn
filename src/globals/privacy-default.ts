@@ -1,16 +1,16 @@
 import { convertMarkdownToLexical, editorConfigFactory } from '@payloadcms/richtext-lexical'
 import type { Payload, PayloadRequest } from 'payload'
 
-// The first version of the policy, written into the Privacy global once
-// (by the migration on production, by `npm run payload run` on dev).
+// The first version of the policy, written into the Privacy global once by
+// migration 20261020_113152_privacy_global. After that it is edited in /admin.
 const markdown = `## Who is responsible
 
 StepIn is run by Liezl Fourie, Jesse Owens Ring, 14641 Wustermark, Germany. For anything about your data, email [liezl.fourie@amplivine.world](mailto:liezl.fourie@amplivine.world).
 
 ## What we collect and why
 
-- **Guest names** you type when buying tickets, to put each guest on the door list and seat them.
-- **Your email and phone number**, collected by Stripe at checkout, to send your receipt and contact you about your booking.
+- **Guest names** you type when buying tickets, to seat each guest and check them in at the door.
+- **Your email and phone number**, collected by Stripe at checkout, so Stripe can send your payment receipt and we can contact you about your booking.
 - **Order details** (event, tickets, amount, payment status), as our record of the sale.
 - **Names and phone numbers given over the phone** when you book by phone.
 
@@ -33,7 +33,7 @@ These companies are based in the United States, so your data may be accessed fro
 
 - Bookings (guest names, phone, seating): deleted within 30 days after the event.
 - Orders that were never paid: deleted within 30 days.
-- Paid orders: kept for as long as tax and accounting law requires, then deleted.
+- Paid orders (event, tickets, amount, your email and phone, and the guest names): kept for as long as tax and accounting law requires, then deleted.
 
 ## Cookies
 

@@ -33,6 +33,13 @@ describe('slug', () => {
     expect(own.slug).toBe(`${base}-my-own`)
     const kept = await payload.update({ collection: 'events', id: event.id, data: { date: '2027-05-15T17:30:00.000Z' } })
     expect(kept.slug).toBe(`${base}-my-own`)
+
+    // Clearing it (the admin may send null or '') goes back to the generated one.
+    const cleared = await payload.update({ collection: 'events', id: event.id, data: { slug: null } })
+    expect(cleared.slug).toBe(`${base}-2027-05-15`)
+    await payload.update({ collection: 'events', id: event.id, data: { slug: 'custom again' } })
+    const emptied = await payload.update({ collection: 'events', id: event.id, data: { slug: '' } })
+    expect(emptied.slug).toBe(`${base}-2027-05-15`)
   })
 })
 
