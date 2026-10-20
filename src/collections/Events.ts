@@ -1,11 +1,11 @@
-import type { CollectionConfig } from 'payload'
-import { slugField } from 'payload'
+import type { CollectionConfig, FieldHook } from 'payload'
 import { slugify } from 'payload/shared'
 
 import { TIME_ZONE } from '@/lib/format'
 import { DEFAULT_SEATS } from '@/lib/seating'
 import { EUROS } from './euros'
 import { reconcileEventTables, unseatDroppedTables } from './hooks/reconcileEventTables'
+import { repeatEvent } from './hooks/repeatEvent'
 
 // "Mandjiedans" on 31 Oct 2026 → "mandjiedans-2026-10-31", so repeat dates of the
 // same event get their own address. A slug that already ends in the date is kept.
@@ -16,12 +16,28 @@ const slugWithDate = ({ data, valueToSlugify }: { data: { date?: string }; value
   return base.endsWith(day) ? base : `${base}-${day}`
 }
 
+// The slug follows the name and date on every save, until someone types their
+// own: a slug that differs from what was generated before is theirs and is kept.
+const autoSlug: FieldHook = ({ value, data, originalDoc }) => {
+  const generate = (doc?: { name?: string; date?: string }) =>
+    slugWithDate({ data: { date: doc?.date }, valueToSlugify: doc?.name })
+  const slug = value ?? originalDoc?.slug
+  const wasGenerated = !originalDoc || originalDoc.slug === generate(originalDoc)
+  const typedNow = originalDoc && slug !== originalDoc.slug
+  if (!slug || (wasGenerated && !typedNow)) {
+    return generate({ name: data?.name ?? originalDoc?.name, date: data?.date ?? originalDoc?.date })
+  }
+  return slugify(slug)
+}
+
 export const Events: CollectionConfig = {
   slug: 'events',
   admin: {
     useAsTitle: 'name',
     defaultColumns: ['name', 'date', 'venue', '_status'],
   },
+  // Replaced by the Repeat fields, which copy an event onto later dates.
+  disableDuplicate: true,
   access: {
     // The public sees published events only; logged-in admins see drafts too.
     read: ({ req }) => (req.user ? true : { _status: { equals: 'published' } }),
@@ -31,7 +47,7 @@ export const Events: CollectionConfig = {
   },
   hooks: {
     beforeChange: [reconcileEventTables],
-    afterChange: [unseatDroppedTables],
+    afterChange: [unseatDroppedTables, repeatEvent],
     // An event's bookings go with it; its orders stay, keeping the event's name.
     beforeDelete: [
       async ({ id, req }) => {
@@ -45,17 +61,53 @@ export const Events: CollectionConfig = {
   },
   fields: [
     { name: 'name', type: 'text', required: true },
-    slugField({ useAsSlug: 'name', slugify: slugWithDate }),
     { name: 'description', type: 'textarea', required: true, admin: { rows: 3 } },
+    {
+      name: 'slug',
+      type: 'text',
+      unique: true,
+      index: true,
+      admin: {
+        description:
+          'The web address, made from the name and date when you save. Type your own to change it; leave empty to go back to the generated one.',
+      },
+      hooks: { beforeValidate: [autoSlug] },
+    },
     {
       name: 'date',
       type: 'date',
       required: true,
       index: true, // home page and clean-up filter on it
-      admin: { position: 'sidebar', date: { pickerAppearance: 'dayAndTime' } },
+      admin: { date: { pickerAppearance: 'dayAndTime' } },
     },
+    { name: 'image', type: 'upload', relationTo: 'media' },
     { name: 'venue', type: 'text', required: true, admin: { position: 'sidebar' } },
-    { name: 'image', type: 'upload', relationTo: 'media', admin: { position: 'sidebar' } },
+    // Not stored: acted on once when the event is saved (hooks/repeatEvent.ts).
+    {
+      name: 'repeatTimes',
+      label: 'Repeat: number of times',
+      type: 'number',
+      virtual: true,
+      min: 1,
+      max: 52,
+      admin: {
+        position: 'sidebar',
+        description: 'When you save, this many more copies of the event are made on later dates. Leave empty for none.',
+      },
+    },
+    {
+      name: 'repeatEvery',
+      label: 'Repeat every',
+      type: 'select',
+      virtual: true,
+      defaultValue: 'weekly',
+      options: [
+        { label: 'Day', value: 'daily' },
+        { label: 'Week', value: 'weekly' },
+        { label: 'Month', value: 'monthly' },
+      ],
+      admin: { position: 'sidebar', condition: (data) => Boolean(data?.repeatTimes) },
+    },
     {
       name: 'ticketTypes',
       type: 'array',
@@ -135,11 +187,9 @@ export const Events: CollectionConfig = {
     {
       name: 'tables',
       type: 'array',
-      admin: {
-        readOnly: true,
-        initCollapsed: true,
-        description: 'Made from the table plan when the event is published.',
-      },
+      // Made from the table plan when the event is published; seating uses it.
+      // Hidden: it only repeats the plan.
+      admin: { hidden: true },
       fields: [
         {
           type: 'row',

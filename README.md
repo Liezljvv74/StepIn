@@ -29,7 +29,8 @@ every visit, so a published change is live straight away.
 ### Events
 
 1. **Events → Create New.**
-2. Fill in name, description, venue, date and time, and optionally an image.
+2. Fill in name and description; under them the web address (slug), date and
+   time, and optionally an image; the venue is in the sidebar.
 3. **Ticket types:** a name and a price in euros (`25.00`, or `25,00`;
    minimum `0.50`). Add as many as needed.
 4. **Table plan** (optional): one line per kind of table: shape (long, round,
@@ -39,8 +40,17 @@ every visit, so a published change is live straight away.
 5. **Publish changes** puts the event on the site. **Save Draft** keeps it
    hidden and does not change the live room.
 
-The web address (slug) is made from the name and the date, for example
-`mandjiedans-2026-10-31`, so the same event can run on many dates.
+The web address (slug) is made from the name and the date on every save, for
+example `mandjiedans-2026-10-31`, so the same event can run on many dates. Type
+your own to override it; it is then kept. Empty it to go back to the generated
+one.
+
+**Repeat:** to run an event again, enter **Repeat: number of times** in the
+sidebar (1–52), choose **Repeat every** day, week or month, and save. That many
+copies are made on later dates at the same local time, with the same ticket
+types, table plan and status (draft or published). Monthly keeps the day of the
+month, or the month's last day when it is shorter. This replaces Payload's
+Duplicate.
 
 Shrinking a table plan while guests sit at the tables it would remove is
 refused with a message naming the tables and guests. Tick **Confirm: remove
