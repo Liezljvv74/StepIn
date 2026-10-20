@@ -96,8 +96,10 @@ The privacy policy is at `/privacy` (`src/app/(frontend)/privacy/page.tsx`),
 linked in the footer and under **Buy tickets**. It promises:
 
 - **Bookings** deleted within 30 days after the event, **unpaid orders**
-  within 30 days, **paid orders** kept as long as tax law requires. Until the
-  planned clean-up does this automatically, delete them by hand in `/admin`.
+  within 30 days, **paid orders** kept as long as tax law requires. A daily
+  Vercel cron (`vercel.json`, `/api/cron/cleanup`) deletes bookings whose event
+  was more than 29 days ago and unpaid orders older than 29 days
+  (`src/lib/delete-expired.ts`). Paid orders and events are not touched.
 - A reply to data requests within one month.
 
 **Handling a data request** (someone emails asking for their data or to have
@@ -146,6 +148,7 @@ You need Node 20+, access to the Neon project **StepIn**, and the
    | `NEXT_PUBLIC_SERVER_URL` | `http://localhost:3000` |
    | `BLOB_READ_WRITE_TOKEN` | Image storage; `vercel env pull` writes it to `.env.local` |
    | `RESEND_API_KEY` | Resend key for admin emails (password reset). Empty: the email is printed in the dev server log |
+   | `CRON_SECRET` | Any long random string; Vercel Cron sends it to the clean-up route |
    | `EMAIL_FROM` | Sender address on a domain verified in Resend. Empty: `onboarding@resend.dev`, which only delivers to your own Resend account's email |
 
    `neon connection-string dev` (pooled with `--pooled`) prints the database
@@ -183,8 +186,8 @@ fixes) and `StepIn-Functionality-Test-Report.xlsx` (feature tests).
 - Functions run in `fra1` (Frankfurt, `vercel.json`), next to the database.
 - **Environment variables on Vercel:** `DATABASE_URL`,
   `DATABASE_URL_UNPOOLED`, `PAYLOAD_SECRET`, `STRIPE_SECRET_KEY`,
-  `STRIPE_WEBHOOK_SECRET`, `BLOB_READ_WRITE_TOKEN`, `RESEND_API_KEY` and
-  `EMAIL_FROM`. The database, Payload
+  `STRIPE_WEBHOOK_SECRET`, `BLOB_READ_WRITE_TOKEN`, `RESEND_API_KEY`,
+  `EMAIL_FROM` and `CRON_SECRET`. The database, Payload
   and Stripe values are stored as sensitive (hidden) values. Checkout uses Vercel's own address when
   `NEXT_PUBLIC_SERVER_URL` is not set.
 - **Stripe webhook** for production:
@@ -242,7 +245,7 @@ app. Design: `docs/superpowers/specs/2026-10-19-venue-management-design.md`.
 | 2 | Expenses per event and an event dashboard: seating, seats left, bookings, money still to collect, expenses, income, profit | Next |
 | 3 | Settings, defaults for new events, repeat events, regular guests | Planned |
 | 4 | CSV reports and the door list (Excel, printable page, CSV) | Planned |
-| 5 | Automatic close and clean-up of past events (orders are kept) | Planned |
+| 5 | Automatic close and clean-up of past events (orders are kept). Daily deletion of old bookings and unpaid orders is live (PR #8) | Planned |
 
 ### Picking up (status on 2026-10-20)
 
