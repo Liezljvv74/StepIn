@@ -3,6 +3,7 @@ import * as migration_20261019_154800_phase1_bookings from './20261019_154800_ph
 import * as migration_20261020_111046_faqs from './20261020_111046_faqs';
 import * as migration_20261020_113152_privacy_global from './20261020_113152_privacy_global';
 import * as migration_20261020_135236_indexes from './20261020_135236_indexes';
+import * as migration_20261020_141755_event_setup from './20261020_141755_event_setup';
 
 export const migrations = [
   {
@@ -28,6 +29,11 @@ export const migrations = [
   {
     up: migration_20261020_135236_indexes.up,
     down: migration_20261020_135236_indexes.down,
-    name: '20261020_135236_indexes'
+    name: '20261020_135236_indexes',
+  },
+  {
+    up: migration_20261020_141755_event_setup.up,
+    down: migration_20261020_141755_event_setup.down,
+    name: '20261020_141755_event_setup'
   },
 ];

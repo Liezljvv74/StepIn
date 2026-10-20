@@ -48,7 +48,7 @@ export default async function EventPage(props: PageProps<'/events/[slug]'>) {
       ) : (
         <BuyForm
           eventId={event.id}
-          slug={event.slug}
+          slug={event.slug ?? slug}
           maxGuests={Math.min(MAX_GUESTS, left ?? MAX_GUESTS)}
           ticketTypes={event.ticketTypes.map((t) => ({
             id: t.id!,

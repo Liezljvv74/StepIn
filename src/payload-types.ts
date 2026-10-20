@@ -136,15 +136,19 @@ export interface UserAuthOperations {
 export interface Event {
   id: number;
   name: string;
-  /**
-   * When enabled, the slug will auto-generate from the title field on save and autosave.
-   */
-  generateSlug?: boolean | null;
-  slug: string;
   description: string;
+  /**
+   * The web address, made from the name and date when you save. Type your own to change it; leave empty to go back to the generated one.
+   */
+  slug?: string | null;
   date: string;
-  venue: string;
   image?: (number | null) | Media;
+  venue: string;
+  /**
+   * When you save, this many more copies of the event are made on later dates. Leave empty for none.
+   */
+  repeatTimes?: number | null;
+  repeatEvery?: ('daily' | 'weekly' | 'monthly') | null;
   ticketTypes: {
     name: string;
     price: number;
@@ -162,9 +166,6 @@ export interface Event {
       }[]
     | null;
   confirmTableChanges?: boolean | null;
-  /**
-   * Made from the table plan when the event is published.
-   */
   tables?:
     | {
         number: number;
@@ -393,12 +394,13 @@ export interface PayloadMigration {
  */
 export interface EventsSelect<T extends boolean = true> {
   name?: T;
-  generateSlug?: T;
-  slug?: T;
   description?: T;
+  slug?: T;
   date?: T;
-  venue?: T;
   image?: T;
+  venue?: T;
+  repeatTimes?: T;
+  repeatEvery?: T;
   ticketTypes?:
     | T
     | {
