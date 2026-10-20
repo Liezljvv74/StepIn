@@ -105,7 +105,7 @@ date. Keep it true to what StepIn does (see "Personal data (GDPR)").
 2. Type each guest's name and pick their ticket type.
 3. **Buy tickets** holds those seats for 31 minutes and opens Stripe Checkout,
    which also asks for a phone number.
-4. After paying, the success page shows **You're in!** once Stripe has
+4. After paying, the success page shows **Thank you for Stepping In :-)** once Stripe has
    confirmed the payment (refresh if it says it is still confirming).
 
 When every seat is taken or being paid for, the event page shows **Sold out**.
