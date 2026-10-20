@@ -6,6 +6,7 @@ import { getPayload } from 'payload'
 
 import { CURRENCY } from '@/lib/format'
 import { CheckoutError, MAX_GUESTS, reserveSeats } from '@/lib/reserve-seats'
+import { serverUrl } from '@/lib/server-url'
 import { stripe } from '@/lib/stripe'
 import { stripeLines } from '@/lib/stripe-lines'
 
@@ -30,10 +31,6 @@ export async function checkout(_state: CheckoutState, formData: FormData): Promi
     throw error
   }
 
-  // Locally from .env; on Vercel the production domain, or the deployment's own URL on previews.
-  const baseUrl =
-    process.env.NEXT_PUBLIC_SERVER_URL ??
-    `https://${process.env.VERCEL_ENV === 'production' ? process.env.VERCEL_PROJECT_PRODUCTION_URL : process.env.VERCEL_URL}`
   const slug = String(formData.get('slug') ?? '')
 
   let session
@@ -56,8 +53,8 @@ export async function checkout(_state: CheckoutState, formData: FormData): Promi
       client_reference_id: String(order.id),
       metadata: { orderId: String(order.id) },
       integration_identifier: 'stepin-tickets-qhwmzrta',
-      success_url: `${baseUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${baseUrl}/events/${slug}`,
+      success_url: `${serverUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${serverUrl}/events/${slug}`,
     })
   } catch (error) {
     // Give the seats straight back rather than holding them for nothing.

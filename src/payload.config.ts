@@ -12,11 +12,14 @@ import { Media } from './collections/Media'
 import { Events } from './collections/Events'
 import { Orders } from './collections/Orders'
 import { Bookings } from './collections/Bookings'
+import { serverUrl } from './lib/server-url'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
 export default buildConfig({
+  // Links in emails (password reset) are built from this.
+  serverURL: serverUrl,
   admin: {
     user: Users.slug,
     importMap: {
