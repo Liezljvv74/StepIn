@@ -56,7 +56,7 @@ export async function reserveSeats(payload: Payload, input: ReserveInput): Promi
       return { name: g.name, ticketType: ticket.name, price: ticket.price }
     })
 
-    const left = await seatsLeft(payload, event.id, req)
+    const left = await seatsLeft(payload, event, req)
     if (left !== null && priced.length > left) throw new CheckoutError(SOLD_OUT_MESSAGE)
 
     const counts = new Map<string, number>()

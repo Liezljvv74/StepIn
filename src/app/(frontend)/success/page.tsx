@@ -15,8 +15,7 @@ export default async function SuccessPage(props: PageProps<'/success'>) {
         collection: 'orders',
         where: { stripeSessionId: { equals: session_id } },
         limit: 1,
-        depth: 1,
-        populate: { events: { name: true } },
+        depth: 0,
       })
     : { docs: [] }
 
@@ -29,8 +28,6 @@ export default async function SuccessPage(props: PageProps<'/success'>) {
     )
   }
 
-  const eventName = order.eventName ?? (typeof order.event === 'object' && order.event ? order.event.name : '')
-
   return (
     <>
       {order.status === 'paid' ? (
@@ -38,7 +35,7 @@ export default async function SuccessPage(props: PageProps<'/success'>) {
           <h1>You&apos;re in!</h1>
           <p>
             {order.quantity} {order.quantity === 1 ? 'ticket' : 'tickets'} ({order.ticketType}) for{' '}
-            {eventName}.
+            {order.eventName}.
           </p>
         </>
       ) : (

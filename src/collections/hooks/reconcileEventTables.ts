@@ -1,6 +1,6 @@
 import { APIError, type CollectionAfterChangeHook, type CollectionBeforeChangeHook } from 'payload'
 
-import { reconcileTables, type PlanLine, type Table } from '@/lib/seating'
+import { isLive, reconcileTables, type PlanLine, type Table } from '@/lib/seating'
 
 // Turns the table plan into numbered tables when an event is published. A draft
 // save leaves the tables alone: guests are seated against the published room.
@@ -71,5 +71,5 @@ async function guestsAt(req: Parameters<CollectionBeforeChangeHook>[0]['req'], e
   })
   return docs
     .flatMap((b) => b.guests)
-    .filter((g) => g.status !== 'cancelled' && g.table != null && tables.includes(g.table)).length
+    .filter((g) => isLive(g.status) && g.table != null && tables.includes(g.table)).length
 }

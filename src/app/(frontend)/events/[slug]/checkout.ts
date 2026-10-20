@@ -51,7 +51,6 @@ export async function checkout(_state: CheckoutState, formData: FormData): Promi
       // The seats are held exactly as long as the payment page is open.
       expires_at: Math.floor(new Date(order.holdUntil!).getTime() / 1000),
       client_reference_id: String(order.id),
-      metadata: { orderId: String(order.id) },
       integration_identifier: 'stepin-tickets-qhwmzrta',
       success_url: `${serverUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${serverUrl}/events/${slug}`,

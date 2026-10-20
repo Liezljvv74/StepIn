@@ -4,6 +4,7 @@ import { slugify } from 'payload/shared'
 
 import { TIME_ZONE } from '@/lib/format'
 import { DEFAULT_SEATS } from '@/lib/seating'
+import { EUROS } from './euros'
 import { reconcileEventTables, unseatDroppedTables } from './hooks/reconcileEventTables'
 
 // "Mandjiedans" on 31 Oct 2026 → "mandjiedans-2026-10-31", so repeat dates of the
@@ -40,6 +41,7 @@ export const Events: CollectionConfig = {
   },
   versions: {
     drafts: true,
+    maxPerDoc: 10,
   },
   fields: [
     { name: 'name', type: 'text', required: true },
@@ -49,6 +51,7 @@ export const Events: CollectionConfig = {
       name: 'date',
       type: 'date',
       required: true,
+      index: true, // home page and clean-up filter on it
       admin: { position: 'sidebar', date: { pickerAppearance: 'dayAndTime' } },
     },
     { name: 'venue', type: 'text', required: true, admin: { position: 'sidebar' } },
@@ -70,7 +73,7 @@ export const Events: CollectionConfig = {
               // Stripe rejects card charges below about 50 cents.
               min: 50,
               label: 'Price (€)',
-              admin: { width: '40%', components: { Cell: '/components/Euros#EurosCell', Field: '/components/Euros#EurosField' } },
+              admin: { width: '40%', components: EUROS },
               // A custom validate replaces Payload's own min check, so it repeats it.
               validate: (value: number | null | undefined) =>
                 (Number.isInteger(value) && value! >= 50) ||

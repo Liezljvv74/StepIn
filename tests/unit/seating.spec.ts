@@ -5,6 +5,7 @@ import {
   reconcileTables,
   seatParty,
   seatsAvailable,
+  withHeldParties,
   type SeatedGuest,
   type Table,
 } from '@/lib/seating'
@@ -99,5 +100,20 @@ describe('seatsAvailable', () => {
 
   it('never goes below nought', () => {
     expect(seatsAvailable([table(1, 10)], 12, 0)).toBe(0)
+  })
+})
+
+describe('withHeldParties', () => {
+  it('keeps seats for parties still paying, oldest first', () => {
+    const tables = [table(1, 4), table(2, 2)]
+    const taken = withHeldParties(tables, [], [2, 3])
+    // The party of 2 takes table 2 (tightest fit); the party of 3 takes table 1.
+    expect(freeSeats(tables, taken)).toEqual(new Map([[1, 1], [2, 0]]))
+    expect(seatParty(tables, taken, 2)).toBeNull()
+  })
+
+  it('skips a held party that no longer fits', () => {
+    const tables = [table(1, 2)]
+    expect(withHeldParties(tables, [], [5])).toEqual([])
   })
 })
