@@ -219,9 +219,10 @@ npm test            # both (54 tests)
 The integration tests create and delete their own events, bookings and orders
 on the dev branch. Test reports are in [`Reports/`](Reports):
 `StepIn-Development-Test-Report.xlsx` (every check made while building, with
-fixes) and `StepIn-Functionality-Test-Report.xlsx` (feature tests). They date
-from 19–20 Oct 2026 and cover Phases 0–1; later changes are covered by the
-automated tests.
+fixes) and `StepIn-Functionality-Test-Report.xlsx` (feature tests), both from
+19 Oct 2026 and covering Phases 0–1, and
+`StepIn-Development-Test-Report-2026-10-20.xlsx` (every check on 20 Oct, PRs
+#7–#19, and the 54 automated tests).
 
 ## Deployment
 
