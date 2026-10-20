@@ -97,11 +97,26 @@ export const Bookings: CollectionConfig = {
       admin: { position: 'sidebar', readOnly: true },
     },
     {
+      // The order stores cents; shown here in euros (30010 → 300.1).
       name: 'amount',
-      label: 'Amount (cents)',
+      label: 'Amount (€)',
       type: 'number',
-      virtual: 'order.amount',
+      virtual: true,
       admin: { position: 'sidebar', readOnly: true },
+      hooks: {
+        // ponytail: one order lookup per booking in the list; fine at this size.
+        afterRead: [
+          async ({ siblingData, req }) => {
+            const order = siblingData.order
+            if (!order) return null
+            const cents =
+              typeof order === 'object'
+                ? order.amount
+                : (await req.payload.findByID({ collection: 'orders', id: order, depth: 0, select: { amount: true }, req })).amount
+            return cents / 100
+          },
+        ],
+      },
     },
     {
       name: 'paymentStatus',

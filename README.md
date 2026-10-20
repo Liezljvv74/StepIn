@@ -62,7 +62,7 @@ online purchases.
   them, or across neighbouring tables if none fits.
 - **Online booking:** created automatically when Stripe confirms a payment,
   with the guests' names, all *Paid*, and the buyer's phone from Stripe.
-  It shows the buyer's email, amount and paid status from its order (in the
+  It shows the buyer's email, amount (in euros) and paid status from its order (in the
   list and the sidebar); the order itself stays under **Orders**.
 - **Cancel one guest:** set their status to *Cancelled*; the seat is freed.
 - **Cancel the whole booking:** tick **Cancel the whole booking** and save.
