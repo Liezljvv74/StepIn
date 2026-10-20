@@ -23,17 +23,14 @@ export function BuyForm(props: {
       <input type="hidden" name="slug" value={props.slug} />
       <label>
         Guests{' '}
-        <input
-          type="number"
-          name="quantity"
-          min={1}
-          max={props.maxGuests}
-          value={quantity}
-          onChange={(e) =>
-            setQuantity(Math.max(1, Math.min(props.maxGuests, Number(e.target.value) || 1)))
-          }
-          required
-        />
+        {/* A list, not a typed number: typing "3" over "1" would otherwise read as 13. */}
+        <select name="quantity" value={quantity} onChange={(e) => setQuantity(Number(e.target.value))}>
+          {Array.from({ length: props.maxGuests }, (_, i) => (
+            <option key={i + 1} value={i + 1}>
+              {i + 1}
+            </option>
+          ))}
+        </select>
       </label>
       {Array.from({ length: quantity }, (_, i) => (
         <fieldset key={i} className="guest">
