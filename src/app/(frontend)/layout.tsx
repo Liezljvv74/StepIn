@@ -15,13 +15,18 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
       <body>
         <header>
           <Link href="/">StepIn</Link>
-          <a href="/admin" className="admin-link">
-            Admin
-          </a>
+          <nav>
+            <Link href="/faq" className="faq-link">
+              FAQ
+            </Link>
+            <a href="/admin" className="admin-link">
+              Admin
+            </a>
+          </nav>
         </header>
         <main>{children}</main>
         <footer>
-          <Link href="/faq">FAQ</Link> · <Link href="/privacy">Privacy</Link>
+          <Link href="/privacy">Privacy</Link>
         </footer>
       </body>
     </html>

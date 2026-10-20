@@ -36,6 +36,8 @@ body > header a {
   color: var(--accent);
   text-decoration: none;
 }
+body > header nav { display: flex; align-items: center; gap: 1rem; }
+body > header .faq-link { font-size: 0.9rem; font-weight: 600; }
 body > header .admin-link {
   font-size: 0.9rem;
   font-weight: 600;
