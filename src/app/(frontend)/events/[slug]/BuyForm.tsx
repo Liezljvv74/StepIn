@@ -15,7 +15,10 @@ export function BuyForm(props: {
   maxGuests: number
 }) {
   const [state, action, pending] = useActionState<CheckoutState, FormData>(checkout, {})
-  const [quantity, setQuantity] = useState(1)
+  // The box keeps exactly what is typed (clearing "1" to type "3" must not snap
+  // back to 1); the browser's min/max check refuses an out-of-range number on submit.
+  const [typed, setTyped] = useState('1')
+  const quantity = Math.min(Math.max(Math.floor(Number(typed)) || 0, 0), props.maxGuests)
 
   return (
     <form action={action} className="buy">
@@ -23,14 +26,15 @@ export function BuyForm(props: {
       <input type="hidden" name="slug" value={props.slug} />
       <label>
         Guests{' '}
-        {/* A list, not a typed number: typing "3" over "1" would otherwise read as 13. */}
-        <select name="quantity" value={quantity} onChange={(e) => setQuantity(Number(e.target.value))}>
-          {Array.from({ length: props.maxGuests }, (_, i) => (
-            <option key={i + 1} value={i + 1}>
-              {i + 1}
-            </option>
-          ))}
-        </select>
+        <input
+          type="number"
+          name="quantity"
+          min={1}
+          max={props.maxGuests}
+          value={typed}
+          onChange={(e) => setTyped(e.target.value)}
+          required
+        />
       </label>
       {Array.from({ length: quantity }, (_, i) => (
         <fieldset key={i} className="guest">
