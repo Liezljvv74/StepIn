@@ -13,6 +13,7 @@ import { Events } from './collections/Events'
 import { Orders } from './collections/Orders'
 import { Bookings } from './collections/Bookings'
 import { Faqs } from './collections/Faqs'
+import { Privacy } from './globals/Privacy'
 import { serverUrl } from './lib/server-url'
 
 const filename = fileURLToPath(import.meta.url)
@@ -28,6 +29,7 @@ export default buildConfig({
     },
   },
   collections: [Events, Bookings, Orders, Faqs, Media, Users],
+  globals: [Privacy],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {
