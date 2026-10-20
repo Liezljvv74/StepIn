@@ -36,7 +36,7 @@ export const Orders: CollectionConfig = {
     { name: 'eventDate', type: 'date' },
     { name: 'ticketType', type: 'text', required: true },
     { name: 'quantity', type: 'number', required: true, min: 1 },
-    { name: 'amount', type: 'number', required: true, admin: { description: 'Total in cents' } },
+    { name: 'amount', label: 'Amount (€)', type: 'number', required: true, admin: { components: { Cell: '/components/Euros#EurosCell', Field: '/components/Euros#EurosField' } } },
     { name: 'email', type: 'email' },
     { name: 'phone', type: 'text' },
     {
@@ -48,7 +48,7 @@ export const Orders: CollectionConfig = {
           fields: [
             { name: 'name', type: 'text', required: true },
             { name: 'ticketType', type: 'text' },
-            { name: 'price', type: 'number', admin: { description: 'Cents' } },
+            { name: 'price', label: 'Price (€)', type: 'number', admin: { components: { Cell: '/components/Euros#EurosCell', Field: '/components/Euros#EurosField' } } },
           ],
         },
       ],

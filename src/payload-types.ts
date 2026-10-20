@@ -238,9 +238,6 @@ export interface Order {
   eventDate?: string | null;
   ticketType: string;
   quantity: number;
-  /**
-   * Total in cents
-   */
   amount: number;
   email?: string | null;
   phone?: string | null;
@@ -248,9 +245,6 @@ export interface Order {
     | {
         name: string;
         ticketType?: string | null;
-        /**
-         * Cents
-         */
         price?: number | null;
         id?: string | null;
       }[]

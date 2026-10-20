@@ -60,15 +60,15 @@ export const Bookings: CollectionConfig = {
             { name: 'ticketType', type: 'text', admin: { width: '15%' } },
             {
               name: 'price',
-              label: 'Price in cents',
+              label: 'Price (€)',
               type: 'number',
               min: 0,
-              admin: { width: '20%' },
+              admin: { width: '20%', components: { Cell: '/components/Euros#EurosCell', Field: '/components/Euros#EurosField' } },
               // A custom validate replaces Payload's own min check, so it repeats it.
               validate: (value: number | null | undefined) =>
                 value == null ||
                 (Number.isInteger(value) && value >= 0) ||
-                'Price must be a whole number of cents, 0 or more',
+                'Price must be 0.00 or more',
             },
           ],
         },
@@ -97,30 +97,11 @@ export const Bookings: CollectionConfig = {
       admin: { position: 'sidebar', readOnly: true },
     },
     {
-      // The order stores cents; shown here in euros (30010 → 300.1).
       name: 'amount',
       label: 'Amount (€)',
       type: 'number',
-      virtual: true,
-      admin: {
-        position: 'sidebar',
-        readOnly: true,
-        components: { Cell: '/components/Euros#EurosCell', Field: '/components/Euros#EurosField' },
-      },
-      hooks: {
-        // ponytail: one order lookup per booking in the list; fine at this size.
-        afterRead: [
-          async ({ siblingData, req }) => {
-            const order = siblingData.order
-            if (!order) return null
-            const cents =
-              typeof order === 'object'
-                ? order.amount
-                : (await req.payload.findByID({ collection: 'orders', id: order, depth: 0, select: { amount: true }, req })).amount
-            return cents / 100
-          },
-        ],
-      },
+      virtual: 'order.amount',
+      admin: { position: 'sidebar', readOnly: true, components: { Cell: '/components/Euros#EurosCell', Field: '/components/Euros#EurosField' } },
     },
     {
       name: 'paymentStatus',
