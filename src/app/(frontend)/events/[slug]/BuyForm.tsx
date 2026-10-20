@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useActionState, useState } from 'react'
 
 import { checkout, type CheckoutState } from './checkout'
@@ -55,6 +56,10 @@ export function BuyForm(props: {
       <button type="submit" disabled={pending}>
         {pending ? 'Holding your seats…' : 'Buy tickets'}
       </button>
+      <p className="fine-print">
+        Guest names, your email and phone are used only for this booking. See our{' '}
+        <Link href="/privacy">privacy policy</Link>.
+      </p>
     </form>
   )
 }

@@ -20,6 +20,13 @@ export const Orders: CollectionConfig = {
   },
   hooks: {
     afterChange: [createBookingFromOrder],
+    // Deleting an order (e.g. an erasure request) also deletes its booking, so
+    // the guests' names and phone don't stay behind.
+    afterDelete: [
+      async ({ id, req }) => {
+        await req.payload.delete({ collection: 'bookings', where: { order: { equals: id } }, req })
+      },
+    ],
   },
   fields: [
     // Not required: an order outlives its event (the clean-up deletes events but
