@@ -20,6 +20,9 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
           </a>
         </header>
         <main>{children}</main>
+        <footer>
+          <Link href="/privacy">Privacy</Link>
+        </footer>
       </body>
     </html>
   )

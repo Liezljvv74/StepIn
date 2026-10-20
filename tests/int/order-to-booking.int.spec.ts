@@ -85,3 +85,14 @@ describe('paid order becomes a booking', () => {
     expect(booking.hasUnseated).toBe(true)
   })
 })
+
+describe('deleting an order', () => {
+  it('deletes its booking too, so no names or phone stay behind', async () => {
+    const { order } = await pendingOrder(10, ['Ann'])
+    await markPaid(order.id)
+    expect((await bookingsFor(order.id)).docs).toHaveLength(1)
+
+    await payload.delete({ collection: 'orders', id: order.id })
+    expect((await bookingsFor(order.id)).docs).toHaveLength(0)
+  })
+})
