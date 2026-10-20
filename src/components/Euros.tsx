@@ -3,7 +3,7 @@
 import { FieldError, TextInput, useField } from '@payloadcms/ui'
 import { mergeFieldStyles } from '@payloadcms/ui/shared'
 import type { DefaultCellComponentProps, NumberFieldClientComponent } from 'payload'
-import { type ChangeEvent, useEffect, useState } from 'react'
+import { type ChangeEvent, useState } from 'react'
 
 import { toCents, toEuros } from '@/lib/format'
 
@@ -13,12 +13,14 @@ export const EurosCell = ({ cellData }: DefaultCellComponentProps) => <span>{toE
 export const EurosField: NumberFieldClientComponent = ({ field, path, readOnly }) => {
   const { value, setValue, showError, errorMessage } = useField<number | null>({ path })
   const [text, setText] = useState(() => toEuros(value))
+  const [lastValue, setLastValue] = useState(value)
 
-  // Follow changes from outside the input (document loaded, form reset).
-  useEffect(() => {
+  // Follow changes from outside the input (document loaded, form reset),
+  // adjusted while rendering rather than in an effect.
+  if (!Object.is(value, lastValue)) {
+    setLastValue(value)
     if (!Object.is(toCents(text), value ?? null)) setText(toEuros(value))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value])
+  }
 
   return (
     <TextInput
