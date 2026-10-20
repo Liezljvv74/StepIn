@@ -35,7 +35,7 @@ export default async function SuccessPage(props: PageProps<'/success'>) {
     <>
       {order.status === 'paid' ? (
         <>
-          <h1>You&apos;re in!</h1>
+          <h1>Thank you for Stepping In :-)</h1>
           <p>
             {order.quantity} {order.quantity === 1 ? 'ticket' : 'tickets'} ({order.ticketType}) for{' '}
             {eventName}.
