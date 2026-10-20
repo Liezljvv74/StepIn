@@ -80,6 +80,12 @@ marked paid only by Stripe's verified webhook, never by the success page.
 Write a question and its answer, then **Publish**; drafts stay hidden. Drag
 rows in the list to change their order.
 
+### Privacy policy
+
+The text of `/privacy` is edited in `/admin` under **Globals → Privacy
+policy**. Saving publishes it straight away and updates its "Last updated"
+date. Keep it true to what StepIn does (see "Personal data (GDPR)").
+
 ## Buying tickets (for customers)
 
 1. Open an event and choose how many guests (1–10).
@@ -98,7 +104,7 @@ is declined. Use any future expiry date and any CVC.
 
 ## Personal data (GDPR)
 
-The privacy policy is at `/privacy` (`src/app/(frontend)/privacy/page.tsx`),
+The privacy policy is at `/privacy`, edited in `/admin` (Privacy policy),
 linked in the footer and under **Buy tickets**. It promises:
 
 - **Bookings** deleted within 30 days after the event, **unpaid orders**
