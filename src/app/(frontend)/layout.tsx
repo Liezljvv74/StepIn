@@ -19,14 +19,14 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
             <Link href="/faq" className="faq-link">
               FAQ
             </Link>
-            <a href="/admin" className="admin-link">
-              Admin
-            </a>
           </nav>
         </header>
         <main>{children}</main>
         <footer>
-          <Link href="/privacy">Privacy</Link>
+          <Link href="/privacy">Privacy</Link> ·{' '}
+          <a href="/admin" className="admin-link">
+            Admin
+          </a>
         </footer>
       </body>
     </html>
