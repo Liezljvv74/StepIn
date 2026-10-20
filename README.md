@@ -343,8 +343,8 @@ app. Design: `docs/superpowers/specs/2026-10-19-venue-management-design.md`.
 
 ## Known issues
 
-- `npm run lint` fails with an ESLint configuration error inherited from the
-  Payload template; it does not affect the build or the tests.
+- `npm run lint` passes with two warnings: event images use a plain `<img>`
+  rather than `next/image` (which would need the Blob host configured).
 - The Playwright tests in `tests/e2e` (`npm run test:e2e`) are not part of
   `npm test`; the admin one creates and deletes a `dev@payloadcms.com` user in
   the dev database.
