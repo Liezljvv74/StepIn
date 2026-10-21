@@ -116,7 +116,8 @@ export const Bookings: CollectionConfig = {
       label: 'Cancel the whole booking',
       type: 'checkbox',
       virtual: true,
-      admin: { position: 'sidebar' },
+      // Payload makes virtual fields read-only unless told otherwise.
+      admin: { position: 'sidebar', readOnly: false },
     },
     {
       name: 'liveGuests',

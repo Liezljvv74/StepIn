@@ -138,7 +138,7 @@ export interface Event {
   name: string;
   description: string;
   /**
-   * The web address, made from the name and date when you save. Type your own to change it; leave empty to go back to the generated one.
+   * The web address, made from the name and date as you type. Type your own to change it; leave empty to go back to the generated one.
    */
   slug?: string | null;
   date: string;
