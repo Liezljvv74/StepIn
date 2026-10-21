@@ -106,13 +106,23 @@ img { max-width: 100%; border-radius: 0.5rem; display: block; }
   border: 1px solid var(--border);
   border-radius: 0.75rem;
 }
-.buy fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 0.5rem; }
-.buy legend { font-weight: 600; margin-bottom: 0.5rem; }
 .buy label span { color: var(--muted); }
 .buy input[type='number'] { width: 4rem; font: inherit; }
-.buy .guest { display: grid; grid-template-columns: 1fr auto; gap: 0.5rem; }
-.buy .guest legend { font-weight: 400; margin-bottom: 0.25rem; }
-.buy .guest input, .buy .guest select { font: inherit; padding: 0.4rem; min-width: 0; }
+/* One numbered line per guest: name and ticket, underlined rather than boxed */
+.buy .guests { margin: 0; padding-left: 1.75rem; display: grid; gap: 0.15rem; }
+.buy .guests li { color: var(--muted); }
+.buy .guests li input, .buy .guests li select {
+  font: inherit;
+  color: var(--fg);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  padding: 0.25rem 0;
+}
+.buy .guests li input { width: calc(100% - 9.5rem); margin-right: 0.5rem; }
+.buy .guests li select { width: 9rem; }
+.buy .guests li input:focus { border-bottom-color: var(--accent); }
 .buy .error { color: var(--accent); margin: 0; }
 .buy button:disabled { opacity: 0.6; cursor: wait; }
 .buy button {
