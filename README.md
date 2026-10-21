@@ -213,9 +213,14 @@ Local work uses the Neon **dev** branch, so it never touches live data.
 
 ```bash
 npm run test:unit   # seating, repeat dates, euro/cent conversion, Stripe line grouping (no database; 22 tests)
-npm run test:int    # bookings, table plans, slug and repeat, checkout, webhook, clean-up, FAQs against the dev database (32 tests)
-npm test            # both (54 tests)
+npm run test:int    # bookings, table plans, slug and repeat, checkout (including large parties), webhook, clean-up, FAQs against the dev database (33 tests)
+npm test            # both (55 tests)
+npm run test:e2e    # browser tests against the dev server on http://localhost:3000 (not part of npm test)
 ```
+
+The browser tests cover the admin pages, the event form (slug while typing,
+editable Repeat and confirm fields), the booking form (Cancel the whole
+booking) and the buy form (any number of guests up to the seats left).
 
 The integration tests create and delete their own events, bookings and orders
 on the dev branch. Test reports are in [`Reports/`](Reports):
@@ -231,6 +236,8 @@ fixes) and `StepIn-Functionality-Test-Report.xlsx` (feature tests), both from
   <https://github.com/Liezljvv74/StepIn>. Pushes to `main` deploy production;
   other branches get preview deployments.
 - Functions run in `fra1` (Frankfurt, `vercel.json`), next to the database.
+- A commit that changes only Markdown files, `docs/` or `Reports/` is not
+  built (`ignoreCommand` in `vercel.json`); the last deployment stays live.
 - **Environment variables on Vercel:** `DATABASE_URL`,
   `DATABASE_URL_UNPOOLED`, `PAYLOAD_SECRET`, `STRIPE_SECRET_KEY`,
   `STRIPE_WEBHOOK_SECRET`, `BLOB_READ_WRITE_TOKEN`, `RESEND_API_KEY`,
@@ -275,9 +282,10 @@ fixes) and `StepIn-Functionality-Test-Report.xlsx` (feature tests), both from
 | `src/lib/delete-expired.ts` | What the daily clean-up deletes |
 | `src/lib/repeat.ts` | Dates for repeated events |
 | `src/lib/format.ts`, `src/components/Euros.tsx` | Prices, dates, euro ↔ cents in the admin |
+| `src/lib/slug.ts`, `src/components/Slug.tsx` | An event's web address: made on save, shown while typing in the admin |
 | `SECURITY.md` | What to do about a data leak |
 | `src/migrations/` | Database migrations |
-| `tests/unit`, `tests/int` | Automated tests |
+| `tests/unit`, `tests/int`, `tests/e2e` | Automated tests (e2e: Playwright, in a browser) |
 | `docs/superpowers/` | Design and build plan for the venue-management features |
 | `Reports/` | Test reports |
 | `CLAUDE.md` | Project brief and the payment rules for AI agents |
@@ -303,17 +311,19 @@ app. Design: `docs/superpowers/specs/2026-10-19-venue-management-design.md`.
 | 4 | CSV reports and the door list (Excel, printable page, CSV) | Planned |
 | 5 | Automatic close and clean-up of past events (orders are kept). Daily deletion of old bookings and unpaid orders is live (PR #8) | Planned |
 
-### Picking up (status on 2026-10-20)
+### Picking up (status on 2026-10-21)
 
 - **Where things stand:** `main` is live at <https://stepin-virid.vercel.app>
   with Phases 0 and 1, the FAQ, the editable privacy policy, the daily
-  clean-up, Resend emails and euro prices (PRs #3–#12). Pull requests #13
-  (efficiency, phone bookings respect online holds), #14 (typed guest count),
-  #15 (Admin link in the footer), #16 (thank-you heading), #17 (event form,
-  automatic slug, Repeat) and #18 (this documentation check) are open; merge
-  them in that order. Merging #13 and #17 runs the migrations
-  `20261020_135236_indexes` and `20261020_141755_event_setup` on production.
-- **Next step:** after the open pull requests are merged, write the build plan
+  clean-up, Resend emails, euro prices, the event form with automatic slug and
+  Repeat, and everything up to PR #24. No pull requests are open. The latest:
+  #21 (no build for docs-only commits), #22 (`brag-output/` ignored), #23
+  (slug shown while typing; Repeat, Confirm and Cancel fields editable again)
+  and #24 (any number of guests, up to the seats left; one line per guest).
+- **Course submission:** the `submission` remote
+  (`TuringCollegeSubmissions/lfouri-AFA.BAI.4.7`) is StepIn's `main` plus the
+  course's `408.md`. After merging here, merge `main` into its `main` and push.
+- **Next step:** write the build plan
   for Phase 2 from the design document (sections "Data (added)" and "Admin
   screens" → "Event dashboard"), save it under
   `docs/superpowers/plans/`, then build it on a new branch with a pull request.
@@ -322,7 +332,7 @@ app. Design: `docs/superpowers/specs/2026-10-19-venue-management-design.md`.
   1. `git pull` on `main`.
   2. Start the two terminals from "Running it locally" (the dev server and
      `stripe listen`).
-  3. Run `npm test` and expect 54 passing (22 unit, 32 integration).
+  3. Run `npm test` and expect 55 passing (22 unit, 33 integration).
 - **Check on the live site:** make one purchase with guest names (card
   `4242 4242 4242 4242`) and see it under **Bookings** in `/admin`. The two
   online bookings named "Guest 1" came from orders made before names were
@@ -331,8 +341,14 @@ app. Design: `docs/superpowers/specs/2026-10-19-venue-management-design.md`.
   - Stop the dev server before switching git branches. When the code changes
     under it, Payload offers to delete tables from the dev database; never
     answer `y`.
+  - On Windows, stopping `npm run dev` can leave Next's server running on
+    port 3000. A leftover server gives false 500 errors after a branch
+    switch; stop it before starting a new one.
   - Every change goes on a branch with a pull request.
   - A change to a collection needs a migration (see "Deployment").
+  - Payload makes a `virtual` field read-only in the admin unless it has
+    `admin: { readOnly: false }`. Fields staff fill in (Repeat, Confirm, Cancel
+    the whole booking) need it.
 - **Small follow-ups found in review** (not blocking):
   - Keep a few minutes' margin between the end of the seat hold and Stripe's
     expiry, so a last-second payment can't lose its seats.
@@ -348,5 +364,6 @@ app. Design: `docs/superpowers/specs/2026-10-19-venue-management-design.md`.
 - `npm run lint` passes with two warnings: event images use a plain `<img>`
   rather than `next/image` (which would need the Blob host configured).
 - The Playwright tests in `tests/e2e` (`npm run test:e2e`) are not part of
-  `npm test`; the admin one creates and deletes a `dev@payloadcms.com` user in
-  the dev database.
+  `npm test`. The admin and event-form ones create and delete a
+  `dev@payloadcms.com` user in the dev database. The buy-form test only
+  checks the seats-left cap when the first upcoming dev event has a table plan.
