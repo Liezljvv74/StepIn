@@ -6,7 +6,6 @@ import { lockEvent, seatsLeft } from './event-seats'
 // Stripe refuses a Checkout Session that expires less than 30 minutes after it
 // is created, and the session is created a moment after the hold starts.
 export const HOLD_MINUTES = 31
-export const MAX_GUESTS = 10
 export const SOLD_OUT_MESSAGE =
   'All seats are taken or being paid for right now, try again in a few minutes'
 
@@ -25,9 +24,8 @@ export type ReserveInput = {
 export async function reserveSeats(payload: Payload, input: ReserveInput): Promise<Order> {
   const guests = input.guests.map((g) => ({ ...g, name: String(g.name ?? '').trim() }))
   if (!Number.isInteger(input.eventId)) throw new CheckoutError('Unknown event')
-  if (guests.length < 1 || guests.length > MAX_GUESTS) {
-    throw new CheckoutError(`Choose between 1 and ${MAX_GUESTS} guests`)
-  }
+  // No fixed party size: the seats left (checked below) are the only limit.
+  if (guests.length < 1) throw new CheckoutError('Choose at least 1 guest')
   if (guests.some((g) => g.name === '')) throw new CheckoutError('Every guest needs a name')
 
   const req = await createLocalReq({}, payload)
