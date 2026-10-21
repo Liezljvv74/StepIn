@@ -1,4 +1,5 @@
 {
   "regions": ["fra1"],
-  "crons": [{ "path": "/api/cron/cleanup", "schedule": "0 3 * * *" }]
+  "crons": [{ "path": "/api/cron/cleanup", "schedule": "0 3 * * *" }],
+  "ignoreCommand": "git diff --quiet HEAD^ HEAD -- . ':!*.md' ':!docs' ':!Reports'"
 }
