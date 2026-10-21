@@ -16,7 +16,8 @@ and hosted on Vercel.
 Tickets to the owner's events: dances, dinners, functions. Each event has a
 name, description, date and time, venue, an optional image, and one or more
 **ticket types** (for example *Standard* and *VIP*), each with its own price.
-A purchase is for 1–10 guests, and every guest is named and has their own
+A purchase is for any number of guests, up to the seats left (no limit when
+the event has no table plan), and every guest is named and has their own
 ticket type.
 
 ## Using StepIn (for the owner)
@@ -107,8 +108,8 @@ date. Keep it true to what StepIn does (see "Personal data (GDPR)").
 
 ## Buying tickets (for customers)
 
-1. Open an event and type how many guests (1–10, or fewer when fewer seats are
-   left).
+1. Open an event and type how many guests. The form shows how many seats are
+   left, and a bigger number becomes that number.
 2. Type each guest's name and pick their ticket type.
 3. **Buy tickets** holds those seats for 31 minutes and opens Stripe Checkout,
    which also asks for a phone number.

@@ -4,7 +4,7 @@ import { getPayload } from 'payload'
 
 import { seatsLeft } from '@/lib/event-seats'
 import { formatDate, formatPrice } from '@/lib/format'
-import { MAX_GUESTS, SOLD_OUT_MESSAGE } from '@/lib/reserve-seats'
+import { SOLD_OUT_MESSAGE } from '@/lib/reserve-seats'
 import { BuyForm } from './BuyForm'
 
 export const dynamic = 'force-dynamic'
@@ -49,7 +49,7 @@ export default async function EventPage(props: PageProps<'/events/[slug]'>) {
         <BuyForm
           eventId={event.id}
           slug={event.slug ?? slug}
-          maxGuests={Math.min(MAX_GUESTS, left ?? MAX_GUESTS)}
+          seatsLeft={left}
           ticketTypes={event.ticketTypes.map((t) => ({
             id: t.id!,
             label: `${t.name} ${formatPrice(t.price)}`,

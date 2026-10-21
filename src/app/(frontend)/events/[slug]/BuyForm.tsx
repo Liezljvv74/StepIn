@@ -12,14 +12,16 @@ export function BuyForm(props: {
   eventId: number
   slug: string
   ticketTypes: TicketType[]
-  maxGuests: number
+  seatsLeft: number | null // null: the room has no table plan, so no limit
 }) {
   const [state, action, pending] = useActionState<CheckoutState, FormData>(checkout, {})
-  // The box keeps what is typed (clearing "1" to type "3" must not snap back to 1),
-  // except a number over the limit, which becomes the limit so the box always
-  // matches the name rows shown. The browser's min check refuses 0 on submit.
+  // Any number of guests, up to the seats left. The box keeps what is typed
+  // (clearing "1" to type "3" must not snap back to 1), except a number over the
+  // seats left, which becomes that number so the box always matches the name
+  // rows shown. The browser's min check refuses 0 on submit.
+  const max = props.seatsLeft ?? Infinity
   const [typed, setTyped] = useState('1')
-  const quantity = Math.min(Math.max(Math.floor(Number(typed)) || 0, 0), props.maxGuests)
+  const quantity = Math.min(Math.max(Math.floor(Number(typed)) || 0, 0), max)
 
   return (
     <form action={action} className="buy">
@@ -31,14 +33,12 @@ export function BuyForm(props: {
           type="number"
           name="quantity"
           min={1}
-          max={props.maxGuests}
+          max={props.seatsLeft ?? undefined}
           value={typed}
-          onChange={(e) =>
-            setTyped(Number(e.target.value) > props.maxGuests ? String(props.maxGuests) : e.target.value)
-          }
+          onChange={(e) => setTyped(Number(e.target.value) > max ? String(max) : e.target.value)}
           required
-        />{' '}
-        <span>(up to {props.maxGuests})</span>
+        />
+        {props.seatsLeft !== null && <span> ({props.seatsLeft} seats left)</span>}
       </label>
       <ol className="guests">
         {Array.from({ length: quantity }, (_, i) => (

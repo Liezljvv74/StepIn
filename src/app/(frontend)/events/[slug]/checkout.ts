@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 
 import { CURRENCY } from '@/lib/format'
-import { CheckoutError, MAX_GUESTS, reserveSeats } from '@/lib/reserve-seats'
+import { CheckoutError, reserveSeats } from '@/lib/reserve-seats'
 import { serverUrl } from '@/lib/server-url'
 import { stripe } from '@/lib/stripe'
 import { stripeLines } from '@/lib/stripe-lines'
@@ -16,7 +16,10 @@ export type CheckoutState = { error?: string }
 // names and their ticket type ids come from the browser; reserveSeats prices
 // every guest from Payload and holds the seats.
 export async function checkout(_state: CheckoutState, formData: FormData): Promise<CheckoutState> {
-  const count = Math.min(Number(formData.get('quantity')) || 0, MAX_GUESTS + 1)
+  // Read only as many guests as the form sent rows for, so a made-up quantity
+  // cannot make the server build a huge list (Next caps the request at 1 MB).
+  const rows = [...formData.keys()].filter((key) => /^guests\.\d+\.name$/.test(key)).length
+  const count = Math.min(Number(formData.get('quantity')) || 0, rows)
   const guests = Array.from({ length: count }, (_, i) => ({
     name: String(formData.get(`guests.${i}.name`) ?? ''),
     ticketTypeId: String(formData.get(`guests.${i}.ticketType`) ?? ''),

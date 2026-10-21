@@ -77,6 +77,16 @@ describe('reserveSeats', () => {
     expect(orders.totalDocs).toBe(0)
   })
 
+  it('takes a large party when the room has the seats', async () => {
+    const event = await makeEvent({ tablePlan: [{ shape: 'round', count: 3, seats: 10 }] })
+    const std = ticket(event, 'Standard')
+    const order = await reserveSeats(payload, {
+      eventId: event.id,
+      guests: Array.from({ length: 25 }, (_, i) => ({ name: `Guest ${i + 1}`, ticketTypeId: std })),
+    })
+    expect(order.quantity).toBe(25)
+  })
+
   it('refuses more guests than seats left', async () => {
     const event = await makeEvent({ tablePlan: [{ shape: 'long', count: 1, seats: 2 }] })
     const std = ticket(event, 'Standard')
