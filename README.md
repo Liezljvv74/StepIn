@@ -42,8 +42,8 @@ every visit, so a published change is live straight away.
    hidden, and a published one keeps its live version and room until you
    publish.
 
-The web address (slug) is made from the name and the date on every save, for
-example `mandjiedans-2026-10-31`, so the same event can run on many dates. Type
+The web address (slug) is made from the name and the date as you type them (and
+again on save), for example `mandjiedans-2026-10-31`, so the same event can run on many dates. Type
 your own to override it; it is then kept. Empty it to go back to the generated
 one.
 

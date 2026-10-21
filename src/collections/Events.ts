@@ -1,20 +1,11 @@
 import type { CollectionConfig, FieldHook } from 'payload'
 import { slugify } from 'payload/shared'
 
-import { TIME_ZONE } from '@/lib/format'
 import { DEFAULT_SEATS } from '@/lib/seating'
+import { slugWithDate } from '@/lib/slug'
 import { EUROS } from './euros'
 import { reconcileEventTables, unseatDroppedTables } from './hooks/reconcileEventTables'
 import { repeatEvent } from './hooks/repeatEvent'
-
-// "Mandjiedans" on 31 Oct 2026 → "mandjiedans-2026-10-31", so repeat dates of the
-// same event get their own address. A slug that already ends in the date is kept.
-const slugWithDate = ({ data, valueToSlugify }: { data: { date?: string }; valueToSlugify?: string }) => {
-  const base = slugify(valueToSlugify)
-  if (!base || !data.date) return base
-  const day = new Intl.DateTimeFormat('en-CA', { timeZone: TIME_ZONE }).format(new Date(data.date))
-  return base.endsWith(day) ? base : `${base}-${day}`
-}
 
 // The slug follows the name and date on every save, until someone types their
 // own: a slug that differs from what was generated before is theirs and is kept.
@@ -69,7 +60,8 @@ export const Events: CollectionConfig = {
       index: true,
       admin: {
         description:
-          'The web address, made from the name and date when you save. Type your own to change it; leave empty to go back to the generated one.',
+          'The web address, made from the name and date as you type. Type your own to change it; leave empty to go back to the generated one.',
+        components: { Field: '/components/Slug#SlugField' },
       },
       hooks: { beforeValidate: [autoSlug] },
     },
@@ -83,6 +75,7 @@ export const Events: CollectionConfig = {
     { name: 'image', type: 'upload', relationTo: 'media' },
     { name: 'venue', type: 'text', required: true, admin: { position: 'sidebar' } },
     // Not stored: acted on once when the event is saved (hooks/repeatEvent.ts).
+    // Payload makes virtual fields read-only unless told otherwise (readOnly: false).
     {
       name: 'repeatTimes',
       label: 'Repeat: number of times',
@@ -92,6 +85,7 @@ export const Events: CollectionConfig = {
       max: 52,
       admin: {
         position: 'sidebar',
+        readOnly: false,
         description: 'When you save, this many more copies of the event are made on later dates. Leave empty for none.',
       },
     },
@@ -106,7 +100,7 @@ export const Events: CollectionConfig = {
         { label: 'Week', value: 'weekly' },
         { label: 'Month', value: 'monthly' },
       ],
-      admin: { position: 'sidebar', condition: (data) => Boolean(data?.repeatTimes) },
+      admin: { position: 'sidebar', readOnly: false, condition: (data) => Boolean(data?.repeatTimes) },
     },
     {
       name: 'ticketTypes',
@@ -183,6 +177,7 @@ export const Events: CollectionConfig = {
       label: 'Confirm: remove tables where guests are seated',
       type: 'checkbox',
       virtual: true,
+      admin: { readOnly: false },
     },
     {
       name: 'tables',
